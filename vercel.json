@@ -17,6 +17,6 @@
     { "src": "/api/verify", "dest": "/api/verify" },
     { "src": "/api/(.*)", "dest": "/api/$1" },
     { "src": "/login.html", "dest": "/login.html" },
-    { "src": "/(.*)", "dest": "/$1" }
+    { "src": "/(.*)", "dest": "/public/$1" }
   ]
 }

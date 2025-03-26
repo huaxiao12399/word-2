@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Word Info</title>
+  <title>单词助手</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script>
@@ -40,6 +40,27 @@
     }, 300000); // 5分钟 = 300000毫秒
   </script>
   <style>
+    :root {
+      --primary-color: #4361ee;
+      --primary-light: #4895ef;
+      --primary-dark: #3a0ca3;
+      --secondary-color: #f72585;
+      --text-color: #2b2d42;
+      --text-light: #6c757d;
+      --background-light: #f8f9fa;
+      --background-white: #ffffff;
+      --border-radius-sm: 8px;
+      --border-radius-md: 12px;
+      --border-radius-lg: 16px;
+      --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+      --transition-speed: 0.3s;
+      --spacing-xs: 0.25rem;
+      --spacing-sm: 0.5rem;
+      --spacing-md: 1rem;
+      --spacing-lg: 1.5rem;
+    }
+
     * {
       margin: 0;
       padding: 0;
@@ -49,32 +70,39 @@
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
       line-height: 1.6;
-      color: #333;
-      max-width: 600px;
+      color: var(--text-color);
+      max-width: 700px;
       margin: 0 auto;
-      padding: 20px;
-      background-color: #f8f9fa;
+      padding: var(--spacing-md);
+      background-color: var(--background-light);
     }
 
     .container {
-      background-color: white;
-      border-radius: 16px;
-      padding: 1.5rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      background-color: var(--background-white);
+      border-radius: var(--border-radius-lg);
+      padding: var(--spacing-lg);
+      box-shadow: var(--shadow-md);
+    }
+
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--spacing-md);
     }
 
     h1 {
-      text-align: center;
-      color: #2c3e50;
-      margin-bottom: 1.5rem;
-      font-size: 1.75rem;
+      font-size: 1.5rem;
       font-weight: 600;
+      color: var(--primary-dark);
+      margin: 0;
     }
 
     .search-box {
       display: flex;
-      gap: 8px;
-      margin-bottom: 1.5rem;
+      gap: var(--spacing-xs);
+      margin-bottom: var(--spacing-lg);
+      position: relative;
     }
 
     input {
@@ -82,29 +110,30 @@
       padding: 10px 16px;
       font-size: 16px;
       border: 2px solid #e9ecef;
-      border-radius: 12px;
+      border-radius: var(--border-radius-md);
       outline: none;
-      transition: all 0.3s ease;
+      transition: all var(--transition-speed) ease;
     }
 
     input:focus {
-      border-color: #4dabf7;
-      box-shadow: 0 0 0 3px rgba(77, 171, 247, 0.1);
+      border-color: var(--primary-light);
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
     }
 
     button {
       padding: 10px 20px;
       font-size: 16px;
-      background-color: #4dabf7;
+      background-color: var(--primary-color);
       color: white;
       border: none;
-      border-radius: 12px;
+      border-radius: var(--border-radius-md);
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: all var(--transition-speed) ease;
+      font-weight: 500;
     }
 
     button:hover {
-      background-color: #339af0;
+      background-color: var(--primary-dark);
       transform: translateY(-1px);
     }
 
@@ -115,9 +144,8 @@
     }
 
     .result {
-      margin-top: 1.5rem;
-      background: #fff;
-      border-radius: 12px;
+      background: var(--background-white);
+      border-radius: var(--border-radius-md);
       overflow: hidden;
     }
 
@@ -127,7 +155,7 @@
 
     .word-info.active {
       display: block;
-      animation: fadeIn 0.3s ease;
+      animation: fadeIn var(--transition-speed) ease;
     }
 
     @keyframes fadeIn {
@@ -136,18 +164,18 @@
     }
 
     .word-section {
-      padding: 1.5rem;
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      padding: var(--spacing-md) var(--spacing-lg);
+      background: linear-gradient(135deg, #f1f3f9 0%, #e9ecef 100%);
       border-bottom: 1px solid #dee2e6;
       overflow: hidden;
     }
 
     .word {
-      font-size: 2.2rem;
+      font-size: 2rem;
       font-weight: 700;
-      color: #1a1a1a;
+      color: var(--text-color);
       text-align: center;
-      margin-bottom: 0.75rem;
+      margin-bottom: var(--spacing-sm);
       letter-spacing: -0.5px;
       word-break: break-word;
       hyphens: auto;
@@ -155,36 +183,35 @@
     }
 
     .word.long-word {
-      font-size: 1.8rem;
-      letter-spacing: -1px;
+      font-size: 1.7rem;
+      letter-spacing: -0.7px;
     }
 
     .word.very-long-word {
-      font-size: 1.5rem;
-      letter-spacing: -1.5px;
+      font-size: 1.4rem;
+      letter-spacing: -1px;
     }
 
     .pronunciation-wrapper {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 1rem;
-      margin-bottom: 0.5rem;
+      margin-bottom: var(--spacing-sm);
     }
 
     .pronunciation-item {
       display: inline-flex;
       align-items: center;
-      gap: 0.5rem;
-      background: rgba(255, 255, 255, 0.8);
-      padding: 0.25rem 0.75rem;
+      gap: var(--spacing-sm);
+      background: rgba(255, 255, 255, 0.7);
+      padding: 4px 12px;
       border-radius: 20px;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      box-shadow: var(--shadow-sm);
     }
 
     .phonetic {
-      color: #e03131;
-      font-size: 1.1rem;
+      color: var(--secondary-color);
+      font-size: 1rem;
       font-family: Arial, sans-serif;
       font-weight: 500;
     }
@@ -192,175 +219,187 @@
     .audio-button {
       background: none;
       border: none;
-      color: #4dabf7;
+      color: var(--primary-color);
       cursor: pointer;
-      padding: 4px;
-      font-size: 1.1rem;
+      padding: 3px;
+      font-size: 1rem;
       transition: transform 0.2s ease;
+      margin-left: 2px;
     }
 
     .audio-button:hover {
-      color: #339af0;
+      color: var(--primary-dark);
       transform: scale(1.1);
+    }
+
+    .syllables-container {
+      width: 100%;
+      overflow-x: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--primary-light) transparent;
+      margin-top: var(--spacing-sm);
+    }
+    
+    .syllables-container::-webkit-scrollbar {
+      height: 4px;
+    }
+    
+    .syllables-container::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    .syllables-container::-webkit-scrollbar-thumb {
+      background-color: var(--primary-light);
+      border-radius: 10px;
     }
 
     .syllables {
       display: flex;
-      justify-content: center;
-      gap: 1rem;
-      margin-top: 1rem;
-      flex-wrap: wrap;
-      padding: 0 0.5rem;
+      gap: 8px;
+      padding: 4px 0;
+      min-width: min-content;
     }
 
     .syllable-block {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 0.3rem;
-      padding: 0.6rem;
-      background: rgba(255, 255, 255, 0.6);
-      border-radius: 8px;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-      min-width: 60px;
-      margin-bottom: 0.5rem;
+      gap: 2px;
+      padding: 6px 10px;
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: var(--border-radius-sm);
+      box-shadow: var(--shadow-sm);
+      min-width: 40px;
     }
 
     .syllable-text {
-      color: #6c757d;
-      font-size: 1rem;
-      font-weight: 400;
+      color: var(--text-color);
+      font-size: 0.9rem;
+      font-weight: 500;
     }
 
     .syllable-phonetic {
-      color: #e03131;
+      color: var(--secondary-color);
       font-family: Arial, sans-serif;
-      font-size: 0.85rem;
+      font-size: 0.75rem;
     }
 
     .meaning-section {
-      padding: 1.5rem;
-      background: #fff;
+      padding: var(--spacing-md);
+      background: var(--background-white);
       display: grid;
-      gap: 1rem;
+      gap: var(--spacing-sm);
     }
 
     .meaning-item {
       position: relative;
-      background: #f8f9fa;
-      border-radius: 12px;
-      padding: 1rem;
+      background: var(--background-light);
+      border-radius: var(--border-radius-md);
+      padding: var(--spacing-sm) var(--spacing-md);
       overflow: hidden;
       transition: all 0.2s ease;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.5rem;
     }
 
     .meaning-item:hover {
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      box-shadow: var(--shadow-sm);
     }
 
     .meaning-group {
       display: flex;
       align-items: center;
-      gap: 0.8rem;
+      gap: var(--spacing-md);
       width: 100%;
     }
 
     .pos-tag {
       display: inline-block;
-      padding: 0.4rem 0.8rem;
-      background: #e7f5ff;
-      color: #1971c2;
-      font-size: 0.9rem;
+      padding: 3px 10px;
+      background-color: rgba(67, 97, 238, 0.1);
+      color: var(--primary-dark);
+      font-size: 0.8rem;
       font-weight: 600;
-      border-radius: 8px;
+      border-radius: var(--border-radius-sm);
       white-space: nowrap;
       flex-shrink: 0;
     }
 
     .meaning-text {
-      color: #495057;
-      font-size: 1.1rem;
-      line-height: 1.6;
+      color: var(--text-color);
+      font-size: 1rem;
+      line-height: 1.5;
       white-space: normal;
       overflow: visible;
-      text-overflow: initial;
       word-wrap: break-word;
+    }
+
+    .meaning-text.extra-long {
+      font-size: 0.85rem !important;
     }
 
     .loading {
       text-align: center;
-      padding: 2rem;
-      color: #868e96;
-      background: #f8f9fa;
-      border-radius: 12px;
+      padding: var(--spacing-lg);
+      color: var(--text-light);
       font-size: 0.9rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+
+    .loading-spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid rgba(67, 97, 238, 0.3);
+      border-radius: 50%;
+      border-top-color: var(--primary-color);
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
 
     .error {
-      color: #e03131;
-      padding: 1.5rem;
-      border-radius: 12px;
-      background-color: #fff5f5;
+      color: var(--secondary-color);
+      padding: var(--spacing-md);
+      border-radius: var(--border-radius-md);
+      background-color: rgba(247, 37, 133, 0.1);
       text-align: center;
       font-size: 0.9rem;
-      border: 1px solid #ffe3e3;
-    }
-
-    .syllables-container {
-      width: 100%;
-      overflow-x: auto;
-      margin-bottom: 0.5rem;
-      padding-bottom: 0.5rem;
-      -webkit-overflow-scrolling: touch;
+      border: 1px solid rgba(247, 37, 133, 0.2);
     }
 
     /* 媒体查询优化 */
     @media (max-width: 480px) {
+      .container {
+        padding: var(--spacing-md);
+      }
+      
       .word-section {
-        padding: 1.25rem;
+        padding: var(--spacing-md);
       }
 
       .word {
-        font-size: 1.8rem;
+        font-size: 1.75rem;
       }
 
       .pronunciation-wrapper {
-        flex-direction: column;
-        gap: 0.5rem;
-      }
-
-      .pronunciation-item {
-        padding: 0.2rem 0.6rem;
-      }
-
-      .phonetic {
-        font-size: 1rem;
-      }
-
-      .audio-button {
-        font-size: 1rem;
+        flex-direction: row;
       }
 
       .meaning-section {
-        padding: 1.25rem;
+        padding: var(--spacing-sm);
       }
 
-      .meaning-text {
-        font-size: 1rem;
-      }
-      
       /* 小屏幕上的词性组特殊处理 */
       .meaning-group {
-        flex-wrap: wrap; /* 允许在小屏幕上自动换行 */
+        flex-wrap: wrap;
       }
       
       .meaning-group .pos-tag {
-        margin-bottom: 0.2rem; /* 在小屏幕上给词性标签添加底部间距 */
+        margin-bottom: 2px;
       }
 
       .word.long-word {
@@ -369,55 +408,32 @@
       
       .word.very-long-word {
         font-size: 1.3rem;
-        letter-spacing: -1.5px;
-      }
-      
-      .syllables {
-        justify-content: flex-start;
-        flex-wrap: nowrap;
       }
     }
     
-    /* 针对特长释义的特殊处理 */
-    .meaning-text.extra-long {
-      font-size: 0.85rem !important;
-    }
-    
-    /* 针对中等屏幕的优化 */
+    /* 中等屏幕的优化 */
     @media (min-width: 481px) and (max-width: 768px) {
       .meaning-group {
         flex-wrap: wrap;
       }
       
       .meaning-group .pos-tag {
-        margin-bottom: 0.2rem;
+        margin-bottom: 2px;
       }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>单词助手</h1>
+    <div class="app-header">
+      <h1>单词助手</h1>
+    </div>
     <div class="search-box">
       <input type="text" id="wordInput" placeholder="请输入要查询的单词..." autofocus>
       <button id="searchButton">查询</button>
     </div>
     <div id="result" class="result">
-      <div class="word-info">
-        <div class="word-section">
-          <div class="word"></div>
-          <div class="pronunciation-wrapper">
-            <div class="pronunciation-item">
-              <span class="phonetic"></span>
-              <button class="audio-button" title="播放发音">🔊</button>
-            </div>
-          </div>
-          <div class="syllables-container">
-            <div class="syllables"></div>
-          </div>
-        </div>
-        <div class="meaning-section"></div>
-      </div>
+      <!-- 结果将在这里显示 -->
     </div>
   </div>
 
@@ -427,18 +443,16 @@
     const searchButton = document.getElementById('searchButton');
     const wordInput = document.getElementById('wordInput');
     const resultDiv = document.getElementById('result');
-    const wordInfo = document.querySelector('.word-info');
 
     // 检查登录状态
     async function checkAuth() {
       try {
         const response = await fetch('/api/verify.js', {
           method: 'GET',
-          credentials: 'include' // 重要：包含 cookies
+          credentials: 'include'
         });
 
         if (!response.ok) {
-          // 如果未登录，重定向到登录页
           window.location.href = '/login.html';
           return false;
         }
@@ -454,7 +468,7 @@
     document.addEventListener('DOMContentLoaded', async () => {
       const isAuthenticated = await checkAuth();
       if (!isAuthenticated) {
-        return; // 如果未认证，页面会重定向到登录页
+        return;
       }
       
       // 初始化页面其他功能
@@ -465,15 +479,12 @@
     function initializePage() {
       const searchInput = document.getElementById('wordInput');
       const searchButton = document.getElementById('searchButton');
-      const wordInfo = document.getElementById('result');
-      const loading = document.getElementById('loading');
-      const error = document.getElementById('error');
 
       async function searchWord() {
         try {
           const isAuthenticated = await checkAuth();
           if (!isAuthenticated) {
-            return; // 如果未认证，页面会重定向到登录页
+            return;
           }
 
           const word = searchInput.value.trim();
@@ -536,7 +547,6 @@
           }
 
           const data = await response.json();
-          console.log('API Response:', data);
           
           if (data.result) {
             try {
@@ -546,7 +556,6 @@
                 throw new Error('返回格式错误');
               }
               const wordData = JSON.parse(jsonMatch[0]);
-              console.log('Parsed Word Data:', wordData);
               displayResult(wordData);
             } catch (error) {
               console.error('解析错误:', error);
@@ -556,11 +565,7 @@
             throw new Error(data.error || '未找到单词信息');
           }
         } catch (error) {
-          console.error('Error Details:', {
-            message: error.message,
-            stack: error.stack,
-            response: error.response
-          });
+          console.error('Error Details:', error);
           showError(error.message || '请求失败，请稍后重试');
         } finally {
           searchButton.disabled = false;
@@ -572,7 +577,7 @@
         try {
           const isAuthenticated = await checkAuth();
           if (!isAuthenticated) {
-            return; // 如果未认证，页面会重定向到登录页
+            return;
           }
 
           // 首先尝试使用 Azure TTS
@@ -588,12 +593,34 @@
             const audioBlob = await response.blob();
             const audioUrl = URL.createObjectURL(audioBlob);
             const audio = new Audio(audioUrl);
+            
+            // 在播放前将按钮变为播放中状态
+            const audioButton = document.querySelector('.audio-button');
+            if (audioButton) {
+              audioButton.textContent = '🔊';
+              audioButton.style.color = 'var(--secondary-color)';
+              audioButton.disabled = true;
+            }
+            
             await new Promise((resolve, reject) => {
               audio.onended = () => {
                 URL.revokeObjectURL(audioUrl);
+                // 播放结束后恢复按钮
+                if (audioButton) {
+                  audioButton.textContent = '🔊';
+                  audioButton.style.color = '';
+                  audioButton.disabled = false;
+                }
                 resolve();
               };
-              audio.onerror = reject;
+              audio.onerror = (e) => {
+                if (audioButton) {
+                  audioButton.textContent = '🔊';
+                  audioButton.style.color = '';
+                  audioButton.disabled = false;
+                }
+                reject(e);
+              };
               audio.play();
             });
             return;
@@ -632,27 +659,23 @@
           throw new Error('数据格式不完整');
         }
 
-        // 创建或获取必要的DOM元素
-        let wordInfo = document.querySelector('.word-info');
-        if (!wordInfo) {
-          wordInfo = document.createElement('div');
-          wordInfo.className = 'word-info';
-          wordInfo.innerHTML = `
-            <div class="word-section">
-              <div class="word"></div>
-              <div class="pronunciation-wrapper">
-                <div class="pronunciation-item">
-                  <span class="phonetic"></span>
-                  <button class="audio-button" title="播放发音">🔊</button>
-                </div>
-              </div>
-              <div class="syllables-container">
-                <div class="syllables"></div>
+        const wordInfo = document.createElement('div');
+        wordInfo.className = 'word-info active';
+        wordInfo.innerHTML = `
+          <div class="word-section">
+            <div class="word"></div>
+            <div class="pronunciation-wrapper">
+              <div class="pronunciation-item">
+                <span class="phonetic"></span>
+                <button class="audio-button" title="播放发音">🔊</button>
               </div>
             </div>
-            <div class="meaning-section"></div>
-          `;
-        }
+            <div class="syllables-container">
+              <div class="syllables"></div>
+            </div>
+          </div>
+          <div class="meaning-section"></div>
+        `;
 
         const wordDiv = wordInfo.querySelector('.word');
         const phoneticSpan = wordInfo.querySelector('.phonetic');
@@ -680,33 +703,20 @@
         phoneticSpan.textContent = phonetic;
 
         // 显示音节
-        syllablesDiv.innerHTML = '';
-        
-        // 根据音节数量调整布局
         const syllableCount = data.syllables.length;
-        // 根据音节数动态设置音节块的样式
-        const syllableStyle = syllableCount > 5 ? 
-          'min-width: 45px; padding: 0.4rem; font-size: 0.9rem;' : '';
-          
-        // 优化音节容器样式
-        const syllablesContainer = wordInfo.querySelector('.syllables-container');
-        if (syllableCount > 6) {
-          // 对于非常多的音节，使用水平滚动
-          syllablesDiv.style.flexWrap = 'nowrap';
+        
+        // 设置音节容器样式
+        if (syllableCount > 4) {
           syllablesDiv.style.justifyContent = 'flex-start';
-          syllablesContainer.style.overflowX = 'auto';
+          syllablesDiv.style.minWidth = 'min-content';
         } else {
-          syllablesDiv.style.flexWrap = 'wrap';
           syllablesDiv.style.justifyContent = 'center';
-          syllablesContainer.style.overflowX = 'hidden';
         }
         
+        // 创建音节块
         data.syllables.forEach(syllable => {
           const syllableBlock = document.createElement('div');
           syllableBlock.className = 'syllable-block';
-          if (syllableStyle) {
-            syllableBlock.style = syllableStyle;
-          }
           
           const syllableText = document.createElement('div');
           syllableText.className = 'syllable-text';
@@ -714,6 +724,7 @@
           
           const syllablePhonetic = document.createElement('div');
           syllablePhonetic.className = 'syllable-phonetic';
+          
           // 确保音节音标有斜杠符号
           let syllablePhoneticText = syllable.phonetic;
           if (!syllablePhoneticText.startsWith('/')) {
@@ -724,19 +735,12 @@
           }
           syllablePhonetic.textContent = syllablePhoneticText;
           
-          // 如果音节过多，动态减小字体大小
-          if (syllableCount > 5) {
-            syllableText.style.fontSize = '0.85rem';
-            syllablePhonetic.style.fontSize = '0.75rem';
-          }
-          
           syllableBlock.appendChild(syllableText);
           syllableBlock.appendChild(syllablePhonetic);
           syllablesDiv.appendChild(syllableBlock);
         });
         
         // 显示释义
-        meaningSection.innerHTML = '';
         data.meanings.forEach(meaning => {
           if (!meaning.partOfSpeech || !Array.isArray(meaning.definitions)) {
             return;
@@ -745,6 +749,9 @@
           const meaningItem = document.createElement('div');
           meaningItem.className = 'meaning-item';
 
+          const meaningGroup = document.createElement('div');
+          meaningGroup.className = 'meaning-group';
+
           const posTag = document.createElement('div');
           posTag.className = 'pos-tag';
           posTag.textContent = meaning.partOfSpeech;
@@ -752,21 +759,13 @@
           const meaningText = document.createElement('div');
           meaningText.className = 'meaning-text';
           
-          // 创建一个组容器，将词性和释义水平排列
-          const meaningGroup = document.createElement('div');
-          meaningGroup.className = 'meaning-group';
-          
           // 合并所有释义，用分号分隔
           meaningText.textContent = meaning.definitions.join('；');
           
           // 根据释义长度自适应字体大小和样式
           const totalLength = meaningText.textContent.length;
           if (totalLength > 150) {
-            meaningText.classList.add('extra-long'); // 为特长释义添加额外类
-          } else if (totalLength > 100) {
-            meaningText.style.fontSize = '0.95rem';
-          } else if (totalLength > 50) {
-            meaningText.style.fontSize = '1rem';
+            meaningText.classList.add('extra-long');
           }
 
           // 将词性和释义添加到组容器中
@@ -778,93 +777,17 @@
           meaningSection.appendChild(meaningItem);
         });
 
-        wordInfo.classList.add('active');
+        // 清空结果区域并添加新内容
         resultDiv.innerHTML = '';
         resultDiv.appendChild(wordInfo);
 
         // 添加发音按钮点击事件
         const audioButton = wordInfo.querySelector('.audio-button');
-        audioButton.addEventListener('click', () => playAudio(data.word));
-        
-        // 应用智能布局调整
-        applySmartLayout(wordInfo);
-      }
-      
-      // 智能布局调整函数
-      function applySmartLayout(wordInfo) {
-        setTimeout(() => {
-          // 给DOM元素渲染一点时间
-          
-          // 1. 检查音节区域是否需要调整
-          const syllablesDiv = wordInfo.querySelector('.syllables');
-          const syllableBlocks = syllablesDiv.querySelectorAll('.syllable-block');
-          
-          if (syllableBlocks.length > 0) {
-            const containerWidth = syllablesDiv.clientWidth;
-            const totalBlocksWidth = Array.from(syllableBlocks).reduce((total, block) => {
-              return total + block.offsetWidth + 16; // 16px是gap的大小
-            }, 0);
-            
-            console.log(`音节区域: 容器宽度=${containerWidth}px, 内容总宽度=${totalBlocksWidth}px, 音节数=${syllableBlocks.length}`);
-            
-            // 如果总宽度超过容器宽度，按比例缩小
-            if (totalBlocksWidth > containerWidth && syllableBlocks.length > 3) {
-              const scaleFactor = Math.min(0.9, containerWidth / totalBlocksWidth);
-              console.log(`应用缩放: ${scaleFactor.toFixed(2)}`);
-              
-              syllableBlocks.forEach(block => {
-                // 缩小音节块
-                block.style.transform = `scale(${scaleFactor})`;
-                block.style.transformOrigin = 'center center';
-                block.style.margin = '0 -5px'; // 减少间距
-                
-                // 减小音节文本大小
-                const textElem = block.querySelector('.syllable-text');
-                const phoneticElem = block.querySelector('.syllable-phonetic');
-                if (textElem) textElem.style.fontSize = `${Math.max(0.7, scaleFactor)}rem`;
-                if (phoneticElem) phoneticElem.style.fontSize = `${Math.max(0.6, scaleFactor * 0.85)}rem`;
-              });
-            }
+        audioButton.addEventListener('click', () => {
+          if (!audioButton.disabled) {
+            playAudio(data.word);
           }
-          
-          // 2. 检查释义区域是否需要调整
-          const meaningGroups = wordInfo.querySelectorAll('.meaning-group');
-          meaningGroups.forEach((group, index) => {
-            const meaningText = group.querySelector('.meaning-text');
-            if (!meaningText) return;
-            
-            // 检测是否有溢出
-            const groupWidth = group.clientWidth;
-            const posTagWidth = group.querySelector('.pos-tag').offsetWidth;
-            const availableWidth = groupWidth - posTagWidth - 16; // 减去间距
-            
-            // 检查释义文本长度和可用空间
-            const textLength = meaningText.textContent.length;
-            
-            console.log(`释义组 ${index+1}: 总宽度=${groupWidth}px, 词性标签宽度=${posTagWidth}px, 可用宽度=${availableWidth}px, 文本长度=${textLength}`);
-            
-            // 如果文本过长，动态调整字体大小
-            if (textLength > 20) {
-              // 根据文本长度和可用空间动态计算字体大小
-              let fontSize = 1.1; // 默认字体大小
-              
-              if (textLength > 100) fontSize = 0.85;
-              else if (textLength > 70) fontSize = 0.9;
-              else if (textLength > 50) fontSize = 0.95;
-              else if (textLength > 30) fontSize = 1.0;
-              
-              console.log(`应用字体大小: ${fontSize}rem`);
-              meaningText.style.fontSize = `${fontSize}rem`;
-              
-              // 对于非常长的释义，让整个组换行显示
-              if (textLength > 150) {
-                group.style.flexDirection = 'column';
-                group.style.alignItems = 'flex-start';
-                group.querySelector('.pos-tag').style.marginBottom = '0.3rem';
-              }
-            }
-          });
-        }, 10); // 给渲染一点时间
+        });
       }
 
       function showError(message) {
@@ -872,7 +795,12 @@
       }
 
       function showLoading() {
-        resultDiv.innerHTML = '<div class="loading">正在查询中...</div>';
+        resultDiv.innerHTML = `
+          <div class="loading">
+            <div class="loading-spinner"></div>
+            <div>正在查询中...</div>
+          </div>
+        `;
       }
 
       searchButton.addEventListener('click', searchWord);

@@ -658,11 +658,15 @@
           searchButton.disabled = true;
           searchButton.textContent = '查询中...';
 
-          // 检查缓存
+          // 检查单词缓存
           const cachedData = wordCache.get(word);
           if (cachedData) {
             console.log('Using cached word data');
             displayResult(cachedData);
+            // 只在没有语音缓存时才预加载语音
+            if (!audioCache.get(word)) {
+              preloadAudioAfterSearch(word);
+            }
             return;
           }
 
@@ -759,6 +763,10 @@
                   // 缓存并显示单词数据
                   wordCache.set(word, wordData);
                   displayResult(wordData);
+                  // 只在没有语音缓存时才预加载语音
+                  if (!audioCache.get(word)) {
+                    preloadAudioAfterSearch(wordData.word);
+                  }
                   return;
                 } catch (parseError) {
                   console.error('解析错误:', parseError);
@@ -798,18 +806,19 @@
         if (!audioButton || audioButton.disabled) return;
 
         try {
-          // 立即更新按钮状态
           audioButton.disabled = true;
           audioButton.style.color = 'var(--secondary-color)';
 
+          const word = text.toLowerCase();
           // 检查缓存
-          const cachedAudio = audioCache.get(text.toLowerCase());
+          const cachedAudio = audioCache.get(word);
           if (cachedAudio) {
             console.log('Using cached audio');
             const audio = new Audio(cachedAudio);
             audio.play().catch(error => {
               console.error('Cached audio playback failed:', error);
-              audioCache.delete(text.toLowerCase());
+              // 只有在播放失败时才删除缓存
+              audioCache.delete(word);
               showError('音频播放失败，请重试');
             });
             
@@ -833,7 +842,13 @@
 
           const audioBlob = await response.blob();
           const audioUrl = URL.createObjectURL(audioBlob);
-          audioCache.set(text.toLowerCase(), audioUrl);
+          
+          // 再次检查缓存，避免重复存储
+          if (!audioCache.get(word)) {
+            audioCache.set(word, audioUrl);
+          } else {
+            URL.revokeObjectURL(audioUrl);
+          }
           
           const audio = new Audio(audioUrl);
           await audio.play();
@@ -868,6 +883,60 @@
         utterance.volume = 1.0;     // 正常音量
         
         window.speechSynthesis.speak(utterance);
+      }
+
+      // 新增自动语音预加载函数
+      async function preloadAudioAfterSearch(word) {
+        // 再次检查语音缓存（以防在延迟期间其他地方已经缓存了）
+        if (!autoTTSManager.canUseAutoTTS() || audioCache.get(word.toLowerCase())) {
+          return;
+        }
+
+        // 延迟2秒后开始预加载
+        setTimeout(async () => {
+          try {
+            const audioButton = document.querySelector('.audio-button');
+            if (!audioButton || audioButton.disabled) return;
+
+            // 第三次检查缓存（以防在延迟期间其他地方已经缓存了）
+            if (audioCache.get(word.toLowerCase())) {
+              console.log('Audio already cached');
+              return;
+            }
+
+            console.log('Auto pre-loading TTS...');
+            audioButton.style.color = 'var(--primary-light)'; // 视觉提示：正在预加载
+
+            // 调用 Azure TTS API
+            const response = await fetch('/api/tts.js', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ text: word })
+            });
+
+            if (!response.ok) {
+              throw new Error('语音合成服务暂时不可用');
+            }
+
+            const audioBlob = await response.blob();
+            const audioUrl = URL.createObjectURL(audioBlob);
+            
+            // 最后一次检查缓存（以防在请求过程中其他地方已经缓存了）
+            if (!audioCache.get(word.toLowerCase())) {
+              audioCache.set(word.toLowerCase(), audioUrl);
+              autoTTSManager.incrementCount();
+            } else {
+              URL.revokeObjectURL(audioUrl); // 清理未使用的 Blob URL
+            }
+            
+            // 视觉提示：预加载完成
+            audioButton.style.color = '';
+            console.log('TTS pre-loading completed');
+          } catch (error) {
+            console.error('Auto TTS pre-loading failed:', error);
+            audioButton.style.color = '';
+          }
+        }, 2000);
       }
 
       function displayResult(data) {
@@ -995,50 +1064,6 @@
           meaningItem.appendChild(meaningGroup);
           meaningSection.appendChild(meaningItem);
         });
-
-        // 在结果显示完成后，延迟1秒预加载语音
-        if (autoTTSManager.canUseAutoTTS()) {
-          setTimeout(async () => {
-            try {
-              const audioButton = wordInfo.querySelector('.audio-button');
-              if (!audioButton || audioButton.disabled) return;
-
-              // 检查缓存
-              const cachedAudio = audioCache.get(data.word.toLowerCase());
-              if (cachedAudio) {
-                console.log('Audio already cached');
-                return;
-              }
-
-              console.log('Auto pre-loading TTS...');
-              audioButton.style.color = 'var(--primary-light)'; // 视觉提示：正在预加载
-
-              // 调用 Azure TTS API
-              const response = await fetch('/api/tts.js', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: data.word })
-              });
-
-              if (!response.ok) {
-                throw new Error('语音合成服务暂时不可用');
-              }
-
-              const audioBlob = await response.blob();
-              const audioUrl = URL.createObjectURL(audioBlob);
-              audioCache.set(data.word.toLowerCase(), audioUrl);
-              
-              // 增加使用次数
-              autoTTSManager.incrementCount();
-              
-              // 视觉提示：预加载完成
-              audioButton.style.color = '';
-              console.log('TTS pre-loading completed');
-            } catch (error) {
-              console.error('Auto TTS pre-loading failed:', error);
-            }
-          }, 1000);
-        }
 
         // 清空结果区域并添加新内容
         resultDiv.innerHTML = '';

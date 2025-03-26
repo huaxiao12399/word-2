@@ -658,15 +658,16 @@
           searchButton.disabled = true;
           searchButton.textContent = '查询中...';
 
+          // 立即开始预加载语音（如果没有缓存）
+          if (!audioCache.get(word)) {
+            preloadAudioAfterSearch(word);
+          }
+
           // 检查单词缓存
           const cachedData = wordCache.get(word);
           if (cachedData) {
             console.log('Using cached word data');
             displayResult(cachedData);
-            // 只在没有语音缓存时才预加载语音
-            if (!audioCache.get(word)) {
-              preloadAudioAfterSearch(word);
-            }
             return;
           }
 
@@ -763,10 +764,6 @@
                   // 缓存并显示单词数据
                   wordCache.set(word, wordData);
                   displayResult(wordData);
-                  // 只在没有语音缓存时才预加载语音
-                  if (!audioCache.get(word)) {
-                    preloadAudioAfterSearch(wordData.word);
-                  }
                   return;
                 } catch (parseError) {
                   console.error('解析错误:', parseError);

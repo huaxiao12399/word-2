@@ -58,7 +58,7 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: 'Invalid request format' });
     }
 
-    const response = await fetch(`${API_URL}/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
+    const response = await fetch(`${API_URL}/models/gemini-2.5-pro-exp-03-25:generateContent?key=${API_KEY}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

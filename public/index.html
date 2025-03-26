@@ -840,6 +840,55 @@
         });
       }
 
+      async function preloadAudioAfterSearch(word) {
+        word = word.toLowerCase();
+        console.log('准备预加载音频，单词:', word);
+        
+        // 检查是否可以使用自动语音合成
+        if (!autoTTSManager.canUseAutoTTS()) {
+          console.log('无法预加载：今日自动语音合成次数已用完');
+          return;
+        }
+
+        // 检查是否已有缓存
+        if (audioCache.get(word)) {
+          console.log('无需预加载：已存在语音缓存');
+          return;
+        }
+
+        console.log('立即开始语音合成...');
+        try {
+          // 再次检查缓存（避免重复加载）
+          if (audioCache.get(word)) {
+            console.log('无需预加载：已被其他操作缓存');
+            return;
+          }
+
+          const audioData = await callAzureTTS(word);
+          console.log('语音合成完成，准备验证数据...');
+          
+          // 验证音频数据格式
+          if (audioData && audioData.startsWith('data:audio/')) {
+            console.log('数据格式验证通过');
+            
+            // 如果验证通过，直接保存到缓存
+            if (!audioCache.get(word)) {
+              audioCache.set(word, audioData);
+              autoTTSManager.incrementCount();
+              console.log('语音数据已缓存，剩余次数:', autoTTSManager.MAX_DAILY_COUNT - autoTTSManager.getTodayCount());
+            } else {
+              console.log('验证期间已被其他操作缓存');
+            }
+          } else {
+            console.error('语音数据格式验证失败');
+          }
+        } catch (error) {
+          console.error('语音预加载失败:', error);
+        } finally {
+          console.log('语音预加载流程结束');
+        }
+      }
+
       async function playAudio(text) {
         const audioButton = document.querySelector('.audio-button');
         if (!audioButton || audioButton.disabled) return;
@@ -883,13 +932,18 @@
           
           // 设置音频事件处理器
           return new Promise((resolve, reject) => {
+            let hasStartedPlaying = false;
+
             audio.oncanplaythrough = async () => {
-              try {
-                await audio.play();
-                console.log('Audio playback started');
-              } catch (error) {
-                console.error('Playback failed:', error);
-                reject(error);
+              if (!hasStartedPlaying) {
+                hasStartedPlaying = true;
+                try {
+                  await audio.play();
+                  console.log('Audio playback started');
+                } catch (error) {
+                  console.error('Playback failed:', error);
+                  reject(error);
+                }
               }
             };
 
@@ -906,14 +960,6 @@
               audioCache.delete(word);
               reject(new Error('Audio playback failed'));
             };
-
-            // 设置超时
-            setTimeout(() => {
-              if (audio.readyState !== 4) { // 4 = HAVE_ENOUGH_DATA
-                console.error('Audio loading timeout');
-                reject(new Error('Audio loading timeout'));
-              }
-            }, 5000); // 5秒超时
           });
 
         } catch (error) {
@@ -940,73 +986,6 @@
         utterance.volume = 1.0;     // 正常音量
         
         window.speechSynthesis.speak(utterance);
-      }
-
-      async function preloadAudioAfterSearch(word) {
-        word = word.toLowerCase();
-        console.log('准备预加载音频，单词:', word);
-        
-        // 检查是否可以使用自动语音合成
-        if (!autoTTSManager.canUseAutoTTS()) {
-          console.log('无法预加载：今日自动语音合成次数已用完');
-          return;
-        }
-
-        // 检查是否已有缓存
-        if (audioCache.get(word)) {
-          console.log('无需预加载：已存在语音缓存');
-          return;
-        }
-
-        console.log('立即开始语音合成...');
-        try {
-          // 再次检查缓存（避免重复加载）
-          if (audioCache.get(word)) {
-            console.log('无需预加载：已被其他操作缓存');
-            return;
-          }
-
-          const audioData = await callAzureTTS(word);
-          console.log('语音合成完成，准备验证数据...');
-          
-          // 验证音频数据格式
-          if (audioData && audioData.startsWith('data:audio/')) {
-            console.log('数据格式验证通过，测试音频播放...');
-            
-            // 验证音频数据是否可以播放
-            const testAudio = new Audio(audioData);
-            await new Promise((resolve, reject) => {
-              testAudio.oncanplaythrough = () => {
-                console.log('音频播放测试通过');
-                resolve();
-              };
-              testAudio.onerror = (e) => {
-                console.error('音频播放测试失败:', e);
-                reject(e);
-              };
-              // 5秒超时
-              setTimeout(() => {
-                console.log('音频播放测试超时');
-                reject(new Error('Audio test timeout'));
-              }, 5000);
-            });
-
-            // 如果验证通过，保存到缓存
-            if (!audioCache.get(word)) {
-              audioCache.set(word, audioData);
-              autoTTSManager.incrementCount();
-              console.log('语音数据已缓存，剩余次数:', autoTTSManager.MAX_DAILY_COUNT - autoTTSManager.getTodayCount());
-            } else {
-              console.log('验证期间已被其他操作缓存');
-            }
-          } else {
-            console.error('语音数据格式验证失败');
-          }
-        } catch (error) {
-          console.error('语音预加载失败:', error);
-        } finally {
-          console.log('语音预加载流程结束');
-        }
       }
 
       function displayResult(data) {

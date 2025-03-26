@@ -552,6 +552,59 @@
     const wordCache = new CacheManager('word_data');
     const audioCache = new CacheManager('audio_data');
 
+    // 在 CacheManager 类后添加语音预加载管理器
+    class AutoTTSManager {
+      constructor() {
+        this.KEY_PREFIX = 'auto_tts_';
+        this.MAX_DAILY_COUNT = 15;
+        this.cleanupOldRecords();
+      }
+
+      // 获取今天的日期键
+      getTodayKey() {
+        const today = new Date();
+        return `${this.KEY_PREFIX}${today.getFullYear()}_${today.getMonth() + 1}_${today.getDate()}`;
+      }
+
+      // 获取今天已使用的次数
+      getTodayCount() {
+        return parseInt(localStorage.getItem(this.getTodayKey()) || '0');
+      }
+
+      // 增加使用次数并返回是否还可以使用
+      incrementCount() {
+        const todayKey = this.getTodayKey();
+        const currentCount = this.getTodayCount();
+        
+        if (currentCount >= this.MAX_DAILY_COUNT) {
+          return false;
+        }
+
+        localStorage.setItem(todayKey, (currentCount + 1).toString());
+        return true;
+      }
+
+      // 清理旧记录
+      cleanupOldRecords() {
+        const today = new Date();
+        const keys = Object.keys(localStorage);
+        
+        keys.forEach(key => {
+          if (key.startsWith(this.KEY_PREFIX) && key !== this.getTodayKey()) {
+            localStorage.removeItem(key);
+          }
+        });
+      }
+
+      // 检查今天是否还能使用自动预加载
+      canUseAutoTTS() {
+        return this.getTodayCount() < this.MAX_DAILY_COUNT;
+      }
+    }
+
+    // 创建自动语音预加载管理器实例
+    const autoTTSManager = new AutoTTSManager();
+
     // 检查登录状态
     async function checkAuth() {
       try {
@@ -756,10 +809,8 @@
             const audio = new Audio(cachedAudio);
             audio.play().catch(error => {
               console.error('Cached audio playback failed:', error);
-              // 如果缓存的音频播放失败，删除缓存
               audioCache.delete(text.toLowerCase());
-              // 立即使用 Web Speech API 作为快速回退
-              playWithWebSpeech(text);
+              showError('音频播放失败，请重试');
             });
             
             audio.onended = () => {
@@ -769,35 +820,32 @@
             return;
           }
 
-          // 并行处理：同时开始 TTS API 调用和准备 Web Speech
-          const ttsPromise = fetch('/api/tts.js', {
+          // 调用 Azure TTS API
+          const response = await fetch('/api/tts.js', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text })
-          }).then(async response => {
-            if (!response.ok) throw new Error('TTS API failed');
-            const audioBlob = await response.blob();
-            const audioUrl = URL.createObjectURL(audioBlob);
-            audioCache.set(text.toLowerCase(), audioUrl);
-            return new Audio(audioUrl);
           });
 
-          // 设置超时
-          const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('TTS timeout')), 3000)
-          );
-
-          // 竞态处理
-          try {
-            const audio = await Promise.race([ttsPromise, timeoutPromise]);
-            await audio.play();
-          } catch (error) {
-            console.log('TTS failed or timed out, falling back to Web Speech');
-            playWithWebSpeech(text);
+          if (!response.ok) {
+            throw new Error('语音合成服务暂时不可用');
           }
+
+          const audioBlob = await response.blob();
+          const audioUrl = URL.createObjectURL(audioBlob);
+          audioCache.set(text.toLowerCase(), audioUrl);
+          
+          const audio = new Audio(audioUrl);
+          await audio.play();
+
+          audio.onended = () => {
+            audioButton.disabled = false;
+            audioButton.style.color = '';
+          };
+
         } catch (error) {
           console.error('Audio playback error:', error);
-          playWithWebSpeech(text);
+          showError('发音播放失败，请稍后重试');
         } finally {
           if (audioButton) {
             audioButton.disabled = false;
@@ -814,10 +862,10 @@
         }
 
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'en-US';
-        utterance.rate = 1.0;
-        utterance.pitch = 1.0;
-        utterance.volume = 1.0;
+        utterance.lang = 'en-GB';  // 保持与 Azure TTS 一致使用英式英语
+        utterance.rate = 1.0;      // 正常语速
+        utterance.pitch = 1.0;     // 正常音高
+        utterance.volume = 1.0;     // 正常音量
         
         window.speechSynthesis.speak(utterance);
       }
@@ -947,6 +995,50 @@
           meaningItem.appendChild(meaningGroup);
           meaningSection.appendChild(meaningItem);
         });
+
+        // 在结果显示完成后，延迟1秒预加载语音
+        if (autoTTSManager.canUseAutoTTS()) {
+          setTimeout(async () => {
+            try {
+              const audioButton = wordInfo.querySelector('.audio-button');
+              if (!audioButton || audioButton.disabled) return;
+
+              // 检查缓存
+              const cachedAudio = audioCache.get(data.word.toLowerCase());
+              if (cachedAudio) {
+                console.log('Audio already cached');
+                return;
+              }
+
+              console.log('Auto pre-loading TTS...');
+              audioButton.style.color = 'var(--primary-light)'; // 视觉提示：正在预加载
+
+              // 调用 Azure TTS API
+              const response = await fetch('/api/tts.js', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: data.word })
+              });
+
+              if (!response.ok) {
+                throw new Error('语音合成服务暂时不可用');
+              }
+
+              const audioBlob = await response.blob();
+              const audioUrl = URL.createObjectURL(audioBlob);
+              audioCache.set(data.word.toLowerCase(), audioUrl);
+              
+              // 增加使用次数
+              autoTTSManager.incrementCount();
+              
+              // 视觉提示：预加载完成
+              audioButton.style.color = '';
+              console.log('TTS pre-loading completed');
+            } catch (error) {
+              console.error('Auto TTS pre-loading failed:', error);
+            }
+          }, 1000);
+        }
 
         // 清空结果区域并添加新内容
         resultDiv.innerHTML = '';

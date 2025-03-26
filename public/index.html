@@ -737,108 +737,85 @@
       }
 
       async function playAudio(text) {
+        const audioButton = document.querySelector('.audio-button');
+        if (!audioButton || audioButton.disabled) return;
+
         try {
-          const isAuthenticated = await checkAuth();
-          if (!isAuthenticated) {
-            return;
-          }
+          // 立即更新按钮状态
+          audioButton.disabled = true;
+          audioButton.style.color = 'var(--secondary-color)';
 
-          const audioButton = document.querySelector('.audio-button');
-          if (audioButton) {
-            audioButton.textContent = '🔊';
-            audioButton.style.color = 'var(--secondary-color)';
-            audioButton.disabled = true;
-          }
-
-          // 检查音频缓存
+          // 检查缓存
           const cachedAudio = audioCache.get(text.toLowerCase());
           if (cachedAudio) {
             console.log('Using cached audio');
             const audio = new Audio(cachedAudio);
-            
-            await new Promise((resolve, reject) => {
-              audio.onended = () => {
-                if (audioButton) {
-                  audioButton.textContent = '🔊';
-                  audioButton.style.color = '';
-                  audioButton.disabled = false;
-                }
-                resolve();
-              };
-              audio.onerror = (e) => {
-                if (audioButton) {
-                  audioButton.textContent = '🔊';
-                  audioButton.style.color = '';
-                  audioButton.disabled = false;
-                }
-                reject(e);
-              };
-              audio.play();
+            audio.play().catch(error => {
+              console.error('Cached audio playback failed:', error);
+              // 如果缓存的音频播放失败，删除缓存
+              audioCache.delete(text.toLowerCase());
+              // 立即使用 Web Speech API 作为快速回退
+              playWithWebSpeech(text);
             });
+            
+            audio.onended = () => {
+              audioButton.disabled = false;
+              audioButton.style.color = '';
+            };
             return;
           }
 
-          // 首先尝试使用 Azure TTS
-          const response = await fetch('/api/tts.js', {
+          // 并行处理：同时开始 TTS API 调用和准备 Web Speech
+          const ttsPromise = fetch('/api/tts.js', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text })
-          });
-
-          if (response.ok) {
+          }).then(async response => {
+            if (!response.ok) throw new Error('TTS API failed');
             const audioBlob = await response.blob();
             const audioUrl = URL.createObjectURL(audioBlob);
-            
-            // 缓存音频 URL
             audioCache.set(text.toLowerCase(), audioUrl);
-            
-            const audio = new Audio(audioUrl);
-            
-            await new Promise((resolve, reject) => {
-              audio.onended = () => {
-                if (audioButton) {
-                  audioButton.textContent = '🔊';
-                  audioButton.style.color = '';
-                  audioButton.disabled = false;
-                }
-                resolve();
-              };
-              audio.onerror = (e) => {
-                if (audioButton) {
-                  audioButton.textContent = '🔊';
-                  audioButton.style.color = '';
-                  audioButton.disabled = false;
-                }
-                reject(e);
-              };
-              audio.play();
-            });
-            return;
-          }
+            return new Audio(audioUrl);
+          });
 
-          // 如果 Azure TTS 失败，回退到 Web Speech API
-          if ('speechSynthesis' in window) {
-            return new Promise((resolve, reject) => {
-              const utterance = new SpeechSynthesisUtterance(text);
-              utterance.lang = 'en-US';
-              utterance.rate = 1.0;
-              utterance.pitch = 1.0;
-              utterance.volume = 1.0;
-              
-              utterance.onend = () => resolve();
-              utterance.onerror = (event) => reject(new Error('Web Speech API播放失败'));
-              
-              window.speechSynthesis.speak(utterance);
-            });
-          }
+          // 设置超时
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('TTS timeout')), 3000)
+          );
 
-          throw new Error('您的浏览器不支持语音合成');
+          // 竞态处理
+          try {
+            const audio = await Promise.race([ttsPromise, timeoutPromise]);
+            await audio.play();
+          } catch (error) {
+            console.log('TTS failed or timed out, falling back to Web Speech');
+            playWithWebSpeech(text);
+          }
         } catch (error) {
-          console.error('Error playing audio:', error);
-          showError('发音播放失败，请稍后重试');
+          console.error('Audio playback error:', error);
+          playWithWebSpeech(text);
+        } finally {
+          if (audioButton) {
+            audioButton.disabled = false;
+            audioButton.style.color = '';
+          }
         }
+      }
+
+      // 分离 Web Speech API 逻辑
+      function playWithWebSpeech(text) {
+        if (!('speechSynthesis' in window)) {
+          console.error('Web Speech API not supported');
+          return;
+        }
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
+        
+        window.speechSynthesis.speak(utterance);
       }
 
       function displayResult(data) {

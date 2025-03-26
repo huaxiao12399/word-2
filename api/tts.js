@@ -71,7 +71,7 @@ module。exports = async (req, res) => {
     const ssml = `
 <speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US">
     <voice name="zh-CN-XiaoxiaoMultilingualNeural">
-        <prosody rate="0%" pitch="0%">
+        <prosody rate="-7%" pitch="0%">
             ${escapedText}
         </prosody>
     </voice>
@@ -106,7 +106,7 @@ module。exports = async (req, res) => {
     });
     res.status(500).json({ 
       error: 'Failed to generate speech',
-      details: error.message 
+      details: error。message 
     });
   }
 } 

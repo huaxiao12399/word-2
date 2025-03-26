@@ -601,14 +601,6 @@
             return;
           }
 
-          // 添加单词验证
-          const validationResponse = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
-          
-          if (!validationResponse.ok) {
-            showError('抱歉，这不是一个有效的英语单词。请检查拼写是否正确。');
-            return;
-          }
-
           showLoading();
           searchButton.disabled = true;
           searchButton.textContent = '查询中...';
@@ -623,6 +615,7 @@
 
           const prompt = `请以JSON格式返回以下单词信息：
 {
+  "exists": true/false,  // 这是一个布尔值，表示这个单词是否是有效的英语单词
   "word": "${word}",
   "phonetic": "标准英式音标（包含音节分界符号'.'、重读符号'ˈ'和次重读符号'ˌ'，如果没有斜杠符号'/'请添加）",
   "syllables": [
@@ -644,7 +637,10 @@
 }
 
 注意事项：
-- 特别说明：我要查询的单词是"${word}"，请确保返回的是这个单词的信息，尤其是当查询单词本身为"word"时
+- 特别说明：我要查询的单词是"${word}"
+- 请首先判断这是否是一个有效的英语单词（包括正式词典收录的词、常用新词、专业术语等）
+- 如果不是有效的英语单词，请将 exists 设置为 false，其他字段可以省略
+- 如果是有效的英语单词，请将 exists 设置为 true，并提供完整的单词信息
 - 使用英式音标
 - 如果是单音节词，syllables数组只包含一个元素
 - 每个音节的text是字母形式，phonetic是对应的音标
@@ -700,9 +696,17 @@
                     throw new Error('返回格式错误：未找到JSON数据');
                   }
                   const wordData = JSON.parse(jsonMatch[0]);
-                  wordCache.set(word, wordData); // 缓存单词数据
+                  
+                  // 检查单词是否存在
+                  if (!wordData.exists) {
+                    showError(`"${word}" 似乎不是一个有效的英语单词。如果您认为这是一个错误，请尝试使用其他拼写方式。`);
+                    return;
+                  }
+                  
+                  // 缓存并显示单词数据
+                  wordCache.set(word, wordData);
                   displayResult(wordData);
-                  return; // 成功处理，退出函数
+                  return;
                 } catch (parseError) {
                   console.error('解析错误:', parseError);
                   throw new Error('数据格式错误: ' + parseError.message);

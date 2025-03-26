@@ -814,11 +814,18 @@
         }
 
         const audioBlob = await response.blob();
-        // 将 Blob 转换为 Base64 字符串
         return new Promise((resolve, reject) => {
           const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result);
-          reader.onerror = reject;
+          reader.onloadend = () => {
+            // 验证数据格式
+            const base64Data = reader.result;
+            if (!base64Data || !base64Data.startsWith('data:audio/')) {
+              reject(new Error('Invalid audio data format'));
+              return;
+            }
+            resolve(base64Data);
+          };
+          reader.onerror = () => reject(new Error('Failed to read audio data'));
           reader.readAsDataURL(audioBlob);
         });
       }
@@ -832,91 +839,80 @@
           audioButton.style.color = 'var(--secondary-color)';
 
           const word = text.toLowerCase();
+          
           // 检查缓存
-          const cachedAudioData = audioCache.get(word);
-          if (cachedAudioData) {
-            console.log('Using cached audio data');
-            try {
-              const audio = new Audio(cachedAudioData);
-              
-              // 添加错误处理
-              audio.onerror = async (e) => {
-                console.error('Cached audio playback failed:', e);
-                console.error('Audio error details:', audio.error);
-                audioCache.delete(word);
-                showError('音频播放失败，正在重试...');
-                
-                try {
-                  const newAudioData = await callAzureTTS(word);
-                  audioCache.set(word, newAudioData);
-                  const newAudio = new Audio(newAudioData);
-                  await newAudio.play();
-                } catch (retryError) {
-                  console.error('Retry failed:', retryError);
-                  showError('音频播放失败，请稍后再试');
-                } finally {
-                  audioButton.disabled = false;
-                  audioButton.style.color = '';
-                }
-              };
-
-              await audio.play();
-              audio.onended = () => {
-                audioButton.disabled = false;
-                audioButton.style.color = '';
-              };
-              return;
-            } catch (playError) {
-              console.error('Immediate playback failed:', playError);
-              throw playError;
+          let audioData = audioCache.get(word);
+          if (audioData) {
+            console.log('Found cached audio data');
+            
+            // 验证缓存的数据格式
+            if (!audioData.startsWith('data:audio/')) {
+              console.log('Invalid cached audio data, removing from cache');
+              audioCache.delete(word);
+              audioData = null;
             }
           }
 
-          console.log('Fetching new audio for:', word);
-          const audioData = await callAzureTTS(word);
-          console.log('Received new audio data');
-          
-          if (!audioData || !audioData.startsWith('data:audio/')) {
-            throw new Error('Invalid audio data received');
+          // 如果没有有效的缓存数据，重新获取
+          if (!audioData) {
+            console.log('Fetching new audio data');
+            try {
+              audioData = await callAzureTTS(word);
+              if (audioData && audioData.startsWith('data:audio/')) {
+                audioCache.set(word, audioData);
+                console.log('New audio data cached');
+              }
+            } catch (error) {
+              console.error('Failed to fetch audio:', error);
+              throw error;
+            }
           }
-          
-          // 存储音频数据
-          if (!audioCache.get(word)) {
-            audioCache.set(word, audioData);
-            console.log('New audio data cached');
-          }
-          
+
+          // 创建并播放音频
           const audio = new Audio(audioData);
           
-          audio.onloadeddata = () => {
-            console.log('Audio data loaded successfully');
-          };
-          
-          audio.onerror = (e) => {
-            console.error('New audio load error:', e);
-            console.error('Audio error details:', audio.error);
-          };
+          // 设置音频事件处理器
+          return new Promise((resolve, reject) => {
+            audio.oncanplaythrough = async () => {
+              try {
+                await audio.play();
+                console.log('Audio playback started');
+              } catch (error) {
+                console.error('Playback failed:', error);
+                reject(error);
+              }
+            };
 
-          await audio.play();
-          console.log('Audio playback started successfully');
+            audio.onended = () => {
+              console.log('Audio playback completed');
+              audioButton.disabled = false;
+              audioButton.style.color = '';
+              resolve();
+            };
 
-          audio.onended = () => {
-            audioButton.disabled = false;
-            audioButton.style.color = '';
-          };
+            audio.onerror = (event) => {
+              console.error('Audio error:', event);
+              console.error('Audio error details:', audio.error);
+              audioCache.delete(word);
+              reject(new Error('Audio playback failed'));
+            };
+
+            // 设置超时
+            setTimeout(() => {
+              if (audio.readyState !== 4) { // 4 = HAVE_ENOUGH_DATA
+                console.error('Audio loading timeout');
+                reject(new Error('Audio loading timeout'));
+              }
+            }, 5000); // 5秒超时
+          });
 
         } catch (error) {
           console.error('Audio playback error:', error);
-          if (error.name === 'NotSupportedError') {
-            console.error('Audio format not supported, trying to clear cache and retry');
-            audioCache.delete(text.toLowerCase());
-          }
           showError('发音播放失败，请稍后重试');
+          audioCache.delete(word); // 删除可能损坏的缓存
         } finally {
-          if (audioButton) {
-            audioButton.disabled = false;
-            audioButton.style.color = '';
-          }
+          audioButton.disabled = false;
+          audioButton.style.color = '';
         }
       }
 
@@ -948,27 +944,40 @@
             const audioButton = document.querySelector('.audio-button');
             if (!audioButton || audioButton.disabled) return;
 
+            // 再次检查缓存（避免重复加载）
             if (audioCache.get(word)) {
-              console.log('Audio already cached');
               return;
             }
 
-            console.log('Auto pre-loading TTS...');
+            console.log('Pre-loading audio...');
             audioButton.style.color = 'var(--primary-light)';
 
-            try {
-              const audioData = await callAzureTTS(word);
-              
+            const audioData = await callAzureTTS(word);
+            
+            // 验证音频数据格式
+            if (audioData && audioData.startsWith('data:audio/')) {
+              // 验证音频数据是否可以播放
+              const testAudio = new Audio(audioData);
+              await new Promise((resolve, reject) => {
+                testAudio.oncanplaythrough = resolve;
+                testAudio.onerror = reject;
+                // 5秒超时
+                setTimeout(reject, 5000);
+              });
+
+              // 如果验证通过，保存到缓存
               if (!audioCache.get(word)) {
                 audioCache.set(word, audioData);
                 autoTTSManager.incrementCount();
                 console.log('Audio pre-loading completed');
               }
-            } finally {
-              audioButton.style.color = '';
             }
           } catch (error) {
-            console.error('Auto TTS pre-loading failed:', error);
+            console.error('Audio pre-loading failed:', error);
+          } finally {
+            if (audioButton) {
+              audioButton.style.color = '';
+            }
           }
         }, 2000);
       }

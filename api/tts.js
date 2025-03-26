@@ -14,10 +14,10 @@ async function verifySessionToken(token) {
   
   try {
     const { data, error } = await supabase
-      。from('active_sessions')
-      。select('*')
-      。eq('session_token', token)
-      。single();
+      .from('active_sessions')
+      .select('*')
+      .eq('session_token', token)
+      .single();
     
     return !error && !!data;
   } catch (error) {
@@ -26,7 +26,7 @@ async function verifySessionToken(token) {
   }
 }
 
-module。exports = async (req, res) => {
+module.exports = async (req, res) => {
   // 检查认证状态
   const sessionToken = req.cookies?.authenticated;
   const isValid = await verifySessionToken(sessionToken);
@@ -37,9 +37,9 @@ module。exports = async (req, res) => {
 
   // 更新最后活动时间
   await supabase
-    。from('active_sessions')
-    。update({ last_activity: new Date().toISOString() })
-    。eq('session_token', sessionToken);
+    .from('active_sessions')
+    .update({ last_activity: new Date().toISOString() })
+    .eq('session_token', sessionToken);
 
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -106,7 +106,7 @@ module。exports = async (req, res) => {
     });
     res.status(500).json({ 
       error: 'Failed to generate speech',
-      details: error。message 
+      details: error.message 
     });
   }
 } 

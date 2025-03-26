@@ -446,6 +446,112 @@
     const wordInput = document.getElementById('wordInput');
     const resultDiv = document.getElementById('result');
 
+    // 在 script 标签开始处添加缓存相关的代码
+    const CACHE_VERSION = '1.0';
+    const CACHE_EXPIRY = 7 * 24 * 60 * 60 * 1000; // 7天
+    const MAX_CACHE_ITEMS = 100; // 最大缓存条目数
+    const MAX_AUDIO_CACHE_ITEMS = 20; // 最大音频缓存条目数
+
+    // 缓存管理器类
+    class CacheManager {
+      constructor(prefix) {
+        this.prefix = prefix;
+        this.cleanupOldCache();
+      }
+
+      // 生成缓存键
+      getKey(key) {
+        return `${this.prefix}_${CACHE_VERSION}_${key}`;
+      }
+
+      // 获取缓存
+      get(key) {
+        try {
+          const item = localStorage.getItem(this.getKey(key));
+          if (!item) return null;
+
+          const { value, timestamp } = JSON.parse(item);
+          if (Date.now() - timestamp > CACHE_EXPIRY) {
+            this.delete(key);
+            return null;
+          }
+          return value;
+        } catch (e) {
+          console.error('Cache read error:', e);
+          return null;
+        }
+      }
+
+      // 设置缓存
+      set(key, value) {
+        try {
+          const item = {
+            value,
+            timestamp: Date.now()
+          };
+          localStorage.setItem(this.getKey(key), JSON.stringify(item));
+          this.cleanup();
+        } catch (e) {
+          console.error('Cache write error:', e);
+          this.cleanup(true); // 强制清理
+        }
+      }
+
+      // 删除缓存
+      delete(key) {
+        localStorage.removeItem(this.getKey(key));
+      }
+
+      // 清理过期和过多的缓存
+      cleanup(force = false) {
+        try {
+          const keys = Object.keys(localStorage)
+            .filter(key => key.startsWith(this.prefix))
+            .map(key => ({
+              key,
+              timestamp: JSON.parse(localStorage.getItem(key)).timestamp
+            }))
+            .sort((a, b) => b.timestamp - a.timestamp);
+
+          // 删除过期的缓存
+          const now = Date.now();
+          keys.forEach(({key, timestamp}) => {
+            if (now - timestamp > CACHE_EXPIRY) {
+              localStorage.removeItem(key);
+            }
+          });
+
+          // 如果缓存项过多或强制清理，则删除最旧的
+          const maxItems = this.prefix.includes('audio') ? MAX_AUDIO_CACHE_ITEMS : MAX_CACHE_ITEMS;
+          if (force || keys.length > maxItems) {
+            keys.slice(maxItems).forEach(({key}) => {
+              localStorage.removeItem(key);
+            });
+          }
+        } catch (e) {
+          console.error('Cache cleanup error:', e);
+        }
+      }
+
+      // 清理旧版本缓存
+      cleanupOldCache() {
+        try {
+          const keys = Object.keys(localStorage);
+          keys.forEach(key => {
+            if (key.startsWith(this.prefix) && !key.includes(CACHE_VERSION)) {
+              localStorage.removeItem(key);
+            }
+          });
+        } catch (e) {
+          console.error('Old cache cleanup error:', e);
+        }
+      }
+    }
+
+    // 创建缓存管理器实例
+    const wordCache = new CacheManager('word_data');
+    const audioCache = new CacheManager('audio_data');
+
     // 检查登录状态
     async function checkAuth() {
       try {
@@ -489,7 +595,7 @@
             return;
           }
 
-          const word = searchInput.value.trim();
+          const word = searchInput.value.trim().toLowerCase(); // 统一使用小写作为缓存键
           if (!word) {
             showError('请输入要查询的单词');
             return;
@@ -498,6 +604,14 @@
           showLoading();
           searchButton.disabled = true;
           searchButton.textContent = '查询中...';
+
+          // 检查缓存
+          const cachedData = wordCache.get(word);
+          if (cachedData) {
+            console.log('Using cached word data');
+            displayResult(cachedData);
+            return;
+          }
 
           const prompt = `请以JSON格式返回以下单词信息：
 {
@@ -578,6 +692,7 @@
                     throw new Error('返回格式错误：未找到JSON数据');
                   }
                   const wordData = JSON.parse(jsonMatch[0]);
+                  wordCache.set(word, wordData); // 缓存单词数据
                   displayResult(wordData);
                   return; // 成功处理，退出函数
                 } catch (parseError) {
@@ -620,6 +735,41 @@
             return;
           }
 
+          const audioButton = document.querySelector('.audio-button');
+          if (audioButton) {
+            audioButton.textContent = '🔊';
+            audioButton.style.color = 'var(--secondary-color)';
+            audioButton.disabled = true;
+          }
+
+          // 检查音频缓存
+          const cachedAudio = audioCache.get(text.toLowerCase());
+          if (cachedAudio) {
+            console.log('Using cached audio');
+            const audio = new Audio(cachedAudio);
+            
+            await new Promise((resolve, reject) => {
+              audio.onended = () => {
+                if (audioButton) {
+                  audioButton.textContent = '🔊';
+                  audioButton.style.color = '';
+                  audioButton.disabled = false;
+                }
+                resolve();
+              };
+              audio.onerror = (e) => {
+                if (audioButton) {
+                  audioButton.textContent = '🔊';
+                  audioButton.style.color = '';
+                  audioButton.disabled = false;
+                }
+                reject(e);
+              };
+              audio.play();
+            });
+            return;
+          }
+
           // 首先尝试使用 Azure TTS
           const response = await fetch('/api/tts.js', {
             method: 'POST',
@@ -632,20 +782,14 @@
           if (response.ok) {
             const audioBlob = await response.blob();
             const audioUrl = URL.createObjectURL(audioBlob);
-            const audio = new Audio(audioUrl);
             
-            // 在播放前将按钮变为播放中状态
-            const audioButton = document.querySelector('.audio-button');
-            if (audioButton) {
-              audioButton.textContent = '🔊';
-              audioButton.style.color = 'var(--secondary-color)';
-              audioButton.disabled = true;
-            }
+            // 缓存音频 URL
+            audioCache.set(text.toLowerCase(), audioUrl);
+            
+            const audio = new Audio(audioUrl);
             
             await new Promise((resolve, reject) => {
               audio.onended = () => {
-                URL.revokeObjectURL(audioUrl);
-                // 播放结束后恢复按钮
                 if (audioButton) {
                   audioButton.textContent = '🔊';
                   audioButton.style.color = '';

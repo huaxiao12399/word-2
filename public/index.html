@@ -801,6 +801,22 @@
         }
       }
 
+      // 统一的 Azure TTS API 调用函数
+      async function callAzureTTS(word) {
+        const response = await fetch('/api/tts.js', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: word })
+        });
+
+        if (!response.ok) {
+          throw new Error('语音合成服务暂时不可用');
+        }
+
+        const audioBlob = await response.blob();
+        return URL.createObjectURL(audioBlob);
+      }
+
       async function playAudio(text) {
         const audioButton = document.querySelector('.audio-button');
         if (!audioButton || audioButton.disabled) return;
@@ -817,7 +833,6 @@
             const audio = new Audio(cachedAudio);
             audio.play().catch(error => {
               console.error('Cached audio playback failed:', error);
-              // 只有在播放失败时才删除缓存
               audioCache.delete(word);
               showError('音频播放失败，请重试');
             });
@@ -829,19 +844,8 @@
             return;
           }
 
-          // 调用 Azure TTS API
-          const response = await fetch('/api/tts.js', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text })
-          });
-
-          if (!response.ok) {
-            throw new Error('语音合成服务暂时不可用');
-          }
-
-          const audioBlob = await response.blob();
-          const audioUrl = URL.createObjectURL(audioBlob);
+          // 获取音频 URL
+          const audioUrl = await callAzureTTS(word);
           
           // 再次检查缓存，避免重复存储
           if (!audioCache.get(word)) {
@@ -885,10 +889,11 @@
         window.speechSynthesis.speak(utterance);
       }
 
-      // 新增自动语音预加载函数
       async function preloadAudioAfterSearch(word) {
-        // 再次检查语音缓存（以防在延迟期间其他地方已经缓存了）
-        if (!autoTTSManager.canUseAutoTTS() || audioCache.get(word.toLowerCase())) {
+        word = word.toLowerCase();
+        
+        // 统一的缓存检查
+        if (!autoTTSManager.canUseAutoTTS() || audioCache.get(word)) {
           return;
         }
 
@@ -898,43 +903,32 @@
             const audioButton = document.querySelector('.audio-button');
             if (!audioButton || audioButton.disabled) return;
 
-            // 第三次检查缓存（以防在延迟期间其他地方已经缓存了）
-            if (audioCache.get(word.toLowerCase())) {
+            // 再次检查缓存（延迟期间可能已缓存）
+            if (audioCache.get(word)) {
               console.log('Audio already cached');
               return;
             }
 
             console.log('Auto pre-loading TTS...');
-            audioButton.style.color = 'var(--primary-light)'; // 视觉提示：正在预加载
+            audioButton.style.color = 'var(--primary-light)';
 
-            // 调用 Azure TTS API
-            const response = await fetch('/api/tts.js', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ text: word })
-            });
-
-            if (!response.ok) {
-              throw new Error('语音合成服务暂时不可用');
-            }
-
-            const audioBlob = await response.blob();
-            const audioUrl = URL.createObjectURL(audioBlob);
-            
-            // 最后一次检查缓存（以防在请求过程中其他地方已经缓存了）
-            if (!audioCache.get(word.toLowerCase())) {
-              audioCache.set(word.toLowerCase(), audioUrl);
-              autoTTSManager.incrementCount();
-            } else {
-              URL.revokeObjectURL(audioUrl); // 清理未使用的 Blob URL
+            try {
+              const audioUrl = await callAzureTTS(word);
+              
+              // 最后检查缓存并存储
+              if (!audioCache.get(word)) {
+                audioCache.set(word, audioUrl);
+                autoTTSManager.incrementCount();
+              } else {
+                URL.revokeObjectURL(audioUrl);
+              }
+            } finally {
+              audioButton.style.color = '';
             }
             
-            // 视觉提示：预加载完成
-            audioButton.style.color = '';
             console.log('TTS pre-loading completed');
           } catch (error) {
             console.error('Auto TTS pre-loading failed:', error);
-            audioButton.style.color = '';
           }
         }, 2000);
       }

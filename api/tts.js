@@ -70,7 +70,7 @@ module.exports = async (req, res) => {
 
     const ssml = `
 <speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-GB">
-    <voice name="zh-CN-XiaoxiaoMultilingualNeural">
+    <voice name="en-GB-SoniaNeural">
         <prosody rate="0%" pitch="0%">
             ${escapedText}
         </prosody>

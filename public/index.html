@@ -961,12 +961,6 @@
         console.log('开始2秒倒计时...');
         setTimeout(async () => {
           try {
-            const audioButton = document.querySelector('.audio-button');
-            if (!audioButton || audioButton.disabled) {
-              console.log('无法预加载：音频按钮不可用');
-              return;
-            }
-
             // 再次检查缓存（避免重复加载）
             if (audioCache.get(word)) {
               console.log('无需预加载：延迟期间已被其他操作缓存');
@@ -974,7 +968,6 @@
             }
 
             console.log('开始语音合成...');
-            audioButton.style.color = 'var(--primary-light)';
 
             const audioData = await callAzureTTS(word);
             console.log('语音合成完成，准备验证数据...');
@@ -1015,10 +1008,7 @@
           } catch (error) {
             console.error('语音预加载失败:', error);
           } finally {
-            if (audioButton) {
-              audioButton.style.color = '';
-              console.log('语音预加载流程结束');
-            }
+            console.log('语音预加载流程结束');
           }
         }, 2000);
       }

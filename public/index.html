@@ -258,6 +258,8 @@
       gap: 8px;
       padding: 4px 0;
       min-width: min-content;
+      justify-content: center;
+      margin: 0 auto;
     }
 
     .syllable-block {
@@ -706,11 +708,9 @@
         const syllableCount = data.syllables.length;
         
         // 设置音节容器样式
+        syllablesDiv.style.justifyContent = 'center';
         if (syllableCount > 4) {
-          syllablesDiv.style.justifyContent = 'flex-start';
           syllablesDiv.style.minWidth = 'min-content';
-        } else {
-          syllablesDiv.style.justifyContent = 'center';
         }
         
         // 创建音节块

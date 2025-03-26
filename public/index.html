@@ -499,76 +499,75 @@
           searchButton.disabled = true;
           searchButton.textContent = '查询中...';
 
-          const prompt = `请以JSON格式返回以下单词信息：
-{
-  "word": "${word}",
-  "phonetic": "标准英式音标（包含音节分界符号'.'、重读符号'ˈ'和次重读符号'ˌ'，如果没有斜杠符号'/'请添加）",
-  "syllables": [
-    {
-      "text": "音节1",
-      "phonetic": "音节1音标（如果没有斜杠符号'/'请添加）"
-    },
-    {
-      "text": "音节2",
-      "phonetic": "音节2音标（如果没有斜杠符号'/'请添加）"
-    }
-  ],
-  "meanings": [
-    {
-      "partOfSpeech": "词性",
-      "definitions": ["中文释义1", "中文释义2"]
-    }
-  ]
-}
+          // 添加重试机制
+          const maxRetries = 3;
+          let retryCount = 0;
+          let lastError = null;
 
-注意事项：
-- 特别说明：我要查询的单词是"${word}"，请确保返回的是这个单词的信息，尤其是当查询单词本身为"word"时
-- 使用英式音标
-- 如果是单音节词，syllables数组只包含一个元素
-- 每个音节的text是字母形式，phonetic是对应的音标
-- 词性使用英文缩写：n., v., adj., adv., prep., conj., pron., num., art., int.
-- 每个词性最多返回3个最常用中文释义
-- 严格按照JSON格式返回，不要添加额外说明`;
-        
-          const payload = {
-            contents: [{
-              parts: [{ text: prompt }]
-            }]
-          };
-
-          const response = await fetch(`/api/word.js`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-          });
-
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-
-          const data = await response.json();
-          
-          if (data.result) {
+          while (retryCount < maxRetries) {
             try {
-              // 提取JSON字符串（去除可能的前后文本）
-              const jsonMatch = data.result.match(/\{[\s\S]*\}/);            
-              if (!jsonMatch) {
-                throw new Error('返回格式错误');
+              const response = await fetch(`/api/word.js`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  contents: [{
+                    parts: [{ text: prompt }]
+                  }]
+                })
+              });
+
+              const responseText = await response.text();
+              console.log('API Response:', {
+                status: response.status,
+                statusText: response.statusText,
+                headers: Object.fromEntries(response.headers.entries()),
+                body: responseText.substring(0, 1000) // 只记录前1000个字符
+              });
+
+              if (!response.ok) {
+                throw new Error(`服务器返回错误 (${response.status}): ${responseText}`);
               }
-              const wordData = JSON.parse(jsonMatch[0]);
-              displayResult(wordData);
+
+              const data = JSON.parse(responseText);
+              
+              if (data.result) {
+                try {
+                  const jsonMatch = data.result.match(/\{[\s\S]*\}/);            
+                  if (!jsonMatch) {
+                    throw new Error('返回格式错误');
+                  }
+                  const wordData = JSON.parse(jsonMatch[0]);
+                  displayResult(wordData);
+                  return; // 成功处理，退出函数
+                } catch (parseError) {
+                  console.error('解析错误:', parseError);
+                  throw new Error('数据格式错误: ' + parseError.message);
+                }
+              } else {
+                throw new Error(data.error || '未找到单词信息');
+              }
             } catch (error) {
-              console.error('解析错误:', error);
-              throw new Error('数据格式错误');
+              lastError = error;
+              retryCount++;
+              
+              if (retryCount < maxRetries) {
+                console.log(`第 ${retryCount} 次重试...`);
+                await new Promise(resolve => setTimeout(resolve, 1000 * retryCount)); // 递增延迟
+                continue;
+              }
+              
+              throw error;
             }
-          } else {
-            throw new Error(data.error || '未找到单词信息');
           }
         } catch (error) {
-          console.error('Error Details:', error);
-          showError(error.message || '请求失败，请稍后重试');
+          console.error('详细错误信息:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+          });
+          showError(`请求失败 (${retryCount}次尝试): ${error.message}`);
         } finally {
           searchButton.disabled = false;
           searchButton.textContent = '查询';

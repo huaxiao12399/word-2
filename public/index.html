@@ -595,9 +595,17 @@
             return;
           }
 
-          const word = searchInput.value.trim().toLowerCase(); // 统一使用小写作为缓存键
+          const word = searchInput.value.trim().toLowerCase();
           if (!word) {
             showError('请输入要查询的单词');
+            return;
+          }
+
+          // 添加单词验证
+          const validationResponse = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
+          
+          if (!validationResponse.ok) {
+            showError('抱歉，这不是一个有效的英语单词。请检查拼写是否正确。');
             return;
           }
 

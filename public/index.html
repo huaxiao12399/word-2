@@ -814,7 +814,13 @@
         }
 
         const audioBlob = await response.blob();
-        return URL.createObjectURL(audioBlob);
+        // 将 Blob 转换为 Base64 字符串
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(audioBlob);
+        });
       }
 
       async function playAudio(text) {
@@ -827,36 +833,33 @@
 
           const word = text.toLowerCase();
           // 检查缓存
-          const cachedAudio = audioCache.get(word);
-          if (cachedAudio) {
-            console.log('Using cached audio URL:', cachedAudio);
-            const audio = new Audio(cachedAudio);
-            
-            // 添加更多的事件监听器来调试
-            audio.onerror = (e) => {
-              console.error('Audio error event:', e);
-              console.error('Audio error details:', audio.error);
-              audioCache.delete(word); // 删除可能损坏的缓存
-              showError('音频播放失败，正在重试...');
-              
-              // 缓存失败时，尝试重新获取
-              callAzureTTS(word).then(newUrl => {
-                audioCache.set(word, newUrl);
-                const newAudio = new Audio(newUrl);
-                newAudio.play().catch(retryError => {
-                  console.error('Retry playback failed:', retryError);
-                  showError('音频播放失败，请稍后再试');
-                });
-              }).catch(ttsError => {
-                console.error('TTS retry failed:', ttsError);
-                showError('语音合成失败，请稍后再试');
-              }).finally(() => {
-                audioButton.disabled = false;
-                audioButton.style.color = '';
-              });
-            };
-
+          const cachedAudioData = audioCache.get(word);
+          if (cachedAudioData) {
+            console.log('Using cached audio data');
             try {
+              const audio = new Audio(cachedAudioData);
+              
+              // 添加错误处理
+              audio.onerror = async (e) => {
+                console.error('Cached audio playback failed:', e);
+                console.error('Audio error details:', audio.error);
+                audioCache.delete(word);
+                showError('音频播放失败，正在重试...');
+                
+                try {
+                  const newAudioData = await callAzureTTS(word);
+                  audioCache.set(word, newAudioData);
+                  const newAudio = new Audio(newAudioData);
+                  await newAudio.play();
+                } catch (retryError) {
+                  console.error('Retry failed:', retryError);
+                  showError('音频播放失败，请稍后再试');
+                } finally {
+                  audioButton.disabled = false;
+                  audioButton.style.color = '';
+                }
+              };
+
               await audio.play();
               audio.onended = () => {
                 audioButton.disabled = false;
@@ -865,35 +868,30 @@
               return;
             } catch (playError) {
               console.error('Immediate playback failed:', playError);
-              throw playError; // 让外层 catch 处理
+              throw playError;
             }
           }
 
           console.log('Fetching new audio for:', word);
-          const audioUrl = await callAzureTTS(word);
-          console.log('Received new audio URL:', audioUrl);
+          const audioData = await callAzureTTS(word);
+          console.log('Received new audio data');
           
-          // 检查 URL 是否有效
-          if (!audioUrl || !audioUrl.startsWith('blob:')) {
-            throw new Error('Invalid audio URL received');
+          if (!audioData || !audioData.startsWith('data:audio/')) {
+            throw new Error('Invalid audio data received');
           }
           
-          // 再次检查缓存，避免重复存储
+          // 存储音频数据
           if (!audioCache.get(word)) {
-            audioCache.set(word, audioUrl);
-            console.log('New audio URL cached for:', word);
-          } else {
-            URL.revokeObjectURL(audioUrl);
+            audioCache.set(word, audioData);
+            console.log('New audio data cached');
           }
           
-          const audio = new Audio(audioUrl);
+          const audio = new Audio(audioData);
           
-          // 添加加载事件监听器
           audio.onloadeddata = () => {
             console.log('Audio data loaded successfully');
           };
           
-          // 添加错误事件监听器
           audio.onerror = (e) => {
             console.error('New audio load error:', e);
             console.error('Audio error details:', audio.error);
@@ -909,7 +907,6 @@
 
         } catch (error) {
           console.error('Audio playback error:', error);
-          // 检查错误类型
           if (error.name === 'NotSupportedError') {
             console.error('Audio format not supported, trying to clear cache and retry');
             audioCache.delete(text.toLowerCase());
@@ -942,18 +939,15 @@
       async function preloadAudioAfterSearch(word) {
         word = word.toLowerCase();
         
-        // 统一的缓存检查
         if (!autoTTSManager.canUseAutoTTS() || audioCache.get(word)) {
           return;
         }
 
-        // 延迟2秒后开始预加载
         setTimeout(async () => {
           try {
             const audioButton = document.querySelector('.audio-button');
             if (!audioButton || audioButton.disabled) return;
 
-            // 再次检查缓存（延迟期间可能已缓存）
             if (audioCache.get(word)) {
               console.log('Audio already cached');
               return;
@@ -963,20 +957,16 @@
             audioButton.style.color = 'var(--primary-light)';
 
             try {
-              const audioUrl = await callAzureTTS(word);
+              const audioData = await callAzureTTS(word);
               
-              // 最后检查缓存并存储
               if (!audioCache.get(word)) {
-                audioCache.set(word, audioUrl);
+                audioCache.set(word, audioData);
                 autoTTSManager.incrementCount();
-              } else {
-                URL.revokeObjectURL(audioUrl);
+                console.log('Audio pre-loading completed');
               }
             } finally {
               audioButton.style.color = '';
             }
-            
-            console.log('TTS pre-loading completed');
           } catch (error) {
             console.error('Auto TTS pre-loading failed:', error);
           }

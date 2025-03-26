@@ -958,59 +958,55 @@
           return;
         }
 
-        console.log('开始2秒倒计时...');
-        setTimeout(async () => {
-          try {
-            // 再次检查缓存（避免重复加载）
-            if (audioCache.get(word)) {
-              console.log('无需预加载：延迟期间已被其他操作缓存');
-              return;
-            }
-
-            console.log('开始语音合成...');
-
-            const audioData = await callAzureTTS(word);
-            console.log('语音合成完成，准备验证数据...');
-            
-            // 验证音频数据格式
-            if (audioData && audioData.startsWith('data:audio/')) {
-              console.log('数据格式验证通过，测试音频播放...');
-              
-              // 验证音频数据是否可以播放
-              const testAudio = new Audio(audioData);
-              await new Promise((resolve, reject) => {
-                testAudio.oncanplaythrough = () => {
-                  console.log('音频播放测试通过');
-                  resolve();
-                };
-                testAudio.onerror = (e) => {
-                  console.error('音频播放测试失败:', e);
-                  reject(e);
-                };
-                // 5秒超时
-                setTimeout(() => {
-                  console.log('音频播放测试超时');
-                  reject(new Error('Audio test timeout'));
-                }, 5000);
-              });
-
-              // 如果验证通过，保存到缓存
-              if (!audioCache.get(word)) {
-                audioCache.set(word, audioData);
-                autoTTSManager.incrementCount();
-                console.log('语音数据已缓存，剩余次数:', autoTTSManager.MAX_DAILY_COUNT - autoTTSManager.getTodayCount());
-              } else {
-                console.log('验证期间已被其他操作缓存');
-              }
-            } else {
-              console.error('语音数据格式验证失败');
-            }
-          } catch (error) {
-            console.error('语音预加载失败:', error);
-          } finally {
-            console.log('语音预加载流程结束');
+        console.log('立即开始语音合成...');
+        try {
+          // 再次检查缓存（避免重复加载）
+          if (audioCache.get(word)) {
+            console.log('无需预加载：已被其他操作缓存');
+            return;
           }
-        }, 2000);
+
+          const audioData = await callAzureTTS(word);
+          console.log('语音合成完成，准备验证数据...');
+          
+          // 验证音频数据格式
+          if (audioData && audioData.startsWith('data:audio/')) {
+            console.log('数据格式验证通过，测试音频播放...');
+            
+            // 验证音频数据是否可以播放
+            const testAudio = new Audio(audioData);
+            await new Promise((resolve, reject) => {
+              testAudio.oncanplaythrough = () => {
+                console.log('音频播放测试通过');
+                resolve();
+              };
+              testAudio.onerror = (e) => {
+                console.error('音频播放测试失败:', e);
+                reject(e);
+              };
+              // 5秒超时
+              setTimeout(() => {
+                console.log('音频播放测试超时');
+                reject(new Error('Audio test timeout'));
+              }, 5000);
+            });
+
+            // 如果验证通过，保存到缓存
+            if (!audioCache.get(word)) {
+              audioCache.set(word, audioData);
+              autoTTSManager.incrementCount();
+              console.log('语音数据已缓存，剩余次数:', autoTTSManager.MAX_DAILY_COUNT - autoTTSManager.getTodayCount());
+            } else {
+              console.log('验证期间已被其他操作缓存');
+            }
+          } else {
+            console.error('语音数据格式验证失败');
+          }
+        } catch (error) {
+          console.error('语音预加载失败:', error);
+        } finally {
+          console.log('语音预加载流程结束');
+        }
       }
 
       function displayResult(data) {

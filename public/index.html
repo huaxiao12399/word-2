@@ -139,6 +139,7 @@
       padding: 1.5rem;
       background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
       border-bottom: 1px solid #dee2e6;
+      overflow: hidden;
     }
 
     .word {
@@ -148,6 +149,19 @@
       text-align: center;
       margin-bottom: 0.75rem;
       letter-spacing: -0.5px;
+      word-break: break-word;
+      hyphens: auto;
+      overflow-wrap: break-word;
+    }
+
+    .word.long-word {
+      font-size: 1.8rem;
+      letter-spacing: -1px;
+    }
+
+    .word.very-long-word {
+      font-size: 1.5rem;
+      letter-spacing: -1.5px;
     }
 
     .pronunciation-wrapper {
@@ -195,6 +209,8 @@
       justify-content: center;
       gap: 1rem;
       margin-top: 1rem;
+      flex-wrap: wrap;
+      padding: 0 0.5rem;
     }
 
     .syllable-block {
@@ -207,6 +223,7 @@
       border-radius: 8px;
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
       min-width: 60px;
+      margin-bottom: 0.5rem;
     }
 
     .syllable-text {
@@ -236,8 +253,9 @@
       overflow: hidden;
       transition: all 0.2s ease;
       display: flex;
-      align-items: center;
-      gap: 1rem;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
     }
 
     .meaning-item:hover {
@@ -245,25 +263,33 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
 
+    .meaning-group {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      width: 100%;
+    }
+
     .pos-tag {
       display: inline-block;
-      padding: 0.5rem 1rem;
+      padding: 0.4rem 0.8rem;
       background: #e7f5ff;
       color: #1971c2;
       font-size: 0.9rem;
       font-weight: 600;
       border-radius: 8px;
       white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .meaning-text {
       color: #495057;
       font-size: 1.1rem;
       line-height: 1.6;
-      flex: 1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      white-space: normal;
+      overflow: visible;
+      text-overflow: initial;
+      word-wrap: break-word;
     }
 
     .loading {
@@ -285,6 +311,15 @@
       border: 1px solid #ffe3e3;
     }
 
+    .syllables-container {
+      width: 100%;
+      overflow-x: auto;
+      margin-bottom: 0.5rem;
+      padding-bottom: 0.5rem;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* 媒体查询优化 */
     @media (max-width: 480px) {
       .word-section {
         padding: 1.25rem;
@@ -318,6 +353,45 @@
       .meaning-text {
         font-size: 1rem;
       }
+      
+      /* 小屏幕上的词性组特殊处理 */
+      .meaning-group {
+        flex-wrap: wrap; /* 允许在小屏幕上自动换行 */
+      }
+      
+      .meaning-group .pos-tag {
+        margin-bottom: 0.2rem; /* 在小屏幕上给词性标签添加底部间距 */
+      }
+
+      .word.long-word {
+        font-size: 1.5rem;
+      }
+      
+      .word.very-long-word {
+        font-size: 1.3rem;
+        letter-spacing: -1.5px;
+      }
+      
+      .syllables {
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+      }
+    }
+    
+    /* 针对特长释义的特殊处理 */
+    .meaning-text.extra-long {
+      font-size: 0.85rem !important;
+    }
+    
+    /* 针对中等屏幕的优化 */
+    @media (min-width: 481px) and (max-width: 768px) {
+      .meaning-group {
+        flex-wrap: wrap;
+      }
+      
+      .meaning-group .pos-tag {
+        margin-bottom: 0.2rem;
+      }
     }
   </style>
 </head>
@@ -338,7 +412,9 @@
               <button class="audio-button" title="播放发音">🔊</button>
             </div>
           </div>
-          <div class="syllables"></div>
+          <div class="syllables-container">
+            <div class="syllables"></div>
+          </div>
         </div>
         <div class="meaning-section"></div>
       </div>
@@ -570,7 +646,9 @@
                   <button class="audio-button" title="播放发音">🔊</button>
                 </div>
               </div>
-              <div class="syllables"></div>
+              <div class="syllables-container">
+                <div class="syllables"></div>
+              </div>
             </div>
             <div class="meaning-section"></div>
           `;
@@ -583,6 +661,14 @@
 
         // 显示单词
         wordDiv.textContent = data.word;
+        
+        // 根据单词长度添加额外类
+        if (data.word.length > 15) {
+          wordDiv.classList.add('very-long-word');
+        } else if (data.word.length > 10) {
+          wordDiv.classList.add('long-word');
+        }
+        
         // 确保音标有斜杠符号
         let phonetic = data.phonetic;
         if (!phonetic.startsWith('/')) {
@@ -595,9 +681,32 @@
 
         // 显示音节
         syllablesDiv.innerHTML = '';
+        
+        // 根据音节数量调整布局
+        const syllableCount = data.syllables.length;
+        // 根据音节数动态设置音节块的样式
+        const syllableStyle = syllableCount > 5 ? 
+          'min-width: 45px; padding: 0.4rem; font-size: 0.9rem;' : '';
+          
+        // 优化音节容器样式
+        const syllablesContainer = wordInfo.querySelector('.syllables-container');
+        if (syllableCount > 6) {
+          // 对于非常多的音节，使用水平滚动
+          syllablesDiv.style.flexWrap = 'nowrap';
+          syllablesDiv.style.justifyContent = 'flex-start';
+          syllablesContainer.style.overflowX = 'auto';
+        } else {
+          syllablesDiv.style.flexWrap = 'wrap';
+          syllablesDiv.style.justifyContent = 'center';
+          syllablesContainer.style.overflowX = 'hidden';
+        }
+        
         data.syllables.forEach(syllable => {
           const syllableBlock = document.createElement('div');
           syllableBlock.className = 'syllable-block';
+          if (syllableStyle) {
+            syllableBlock.style = syllableStyle;
+          }
           
           const syllableText = document.createElement('div');
           syllableText.className = 'syllable-text';
@@ -615,12 +724,17 @@
           }
           syllablePhonetic.textContent = syllablePhoneticText;
           
+          // 如果音节过多，动态减小字体大小
+          if (syllableCount > 5) {
+            syllableText.style.fontSize = '0.85rem';
+            syllablePhonetic.style.fontSize = '0.75rem';
+          }
+          
           syllableBlock.appendChild(syllableText);
           syllableBlock.appendChild(syllablePhonetic);
           syllablesDiv.appendChild(syllableBlock);
         });
         
-
         // 显示释义
         meaningSection.innerHTML = '';
         data.meanings.forEach(meaning => {
@@ -637,10 +751,30 @@
 
           const meaningText = document.createElement('div');
           meaningText.className = 'meaning-text';
+          
+          // 创建一个组容器，将词性和释义水平排列
+          const meaningGroup = document.createElement('div');
+          meaningGroup.className = 'meaning-group';
+          
+          // 合并所有释义，用分号分隔
           meaningText.textContent = meaning.definitions.join('；');
+          
+          // 根据释义长度自适应字体大小和样式
+          const totalLength = meaningText.textContent.length;
+          if (totalLength > 150) {
+            meaningText.classList.add('extra-long'); // 为特长释义添加额外类
+          } else if (totalLength > 100) {
+            meaningText.style.fontSize = '0.95rem';
+          } else if (totalLength > 50) {
+            meaningText.style.fontSize = '1rem';
+          }
 
-          meaningItem.appendChild(posTag);
-          meaningItem.appendChild(meaningText);
+          // 将词性和释义添加到组容器中
+          meaningGroup.appendChild(posTag);
+          meaningGroup.appendChild(meaningText);
+          
+          // 将组容器添加到意思条目中
+          meaningItem.appendChild(meaningGroup);
           meaningSection.appendChild(meaningItem);
         });
 
@@ -651,6 +785,86 @@
         // 添加发音按钮点击事件
         const audioButton = wordInfo.querySelector('.audio-button');
         audioButton.addEventListener('click', () => playAudio(data.word));
+        
+        // 应用智能布局调整
+        applySmartLayout(wordInfo);
+      }
+      
+      // 智能布局调整函数
+      function applySmartLayout(wordInfo) {
+        setTimeout(() => {
+          // 给DOM元素渲染一点时间
+          
+          // 1. 检查音节区域是否需要调整
+          const syllablesDiv = wordInfo.querySelector('.syllables');
+          const syllableBlocks = syllablesDiv.querySelectorAll('.syllable-block');
+          
+          if (syllableBlocks.length > 0) {
+            const containerWidth = syllablesDiv.clientWidth;
+            const totalBlocksWidth = Array.from(syllableBlocks).reduce((total, block) => {
+              return total + block.offsetWidth + 16; // 16px是gap的大小
+            }, 0);
+            
+            console.log(`音节区域: 容器宽度=${containerWidth}px, 内容总宽度=${totalBlocksWidth}px, 音节数=${syllableBlocks.length}`);
+            
+            // 如果总宽度超过容器宽度，按比例缩小
+            if (totalBlocksWidth > containerWidth && syllableBlocks.length > 3) {
+              const scaleFactor = Math.min(0.9, containerWidth / totalBlocksWidth);
+              console.log(`应用缩放: ${scaleFactor.toFixed(2)}`);
+              
+              syllableBlocks.forEach(block => {
+                // 缩小音节块
+                block.style.transform = `scale(${scaleFactor})`;
+                block.style.transformOrigin = 'center center';
+                block.style.margin = '0 -5px'; // 减少间距
+                
+                // 减小音节文本大小
+                const textElem = block.querySelector('.syllable-text');
+                const phoneticElem = block.querySelector('.syllable-phonetic');
+                if (textElem) textElem.style.fontSize = `${Math.max(0.7, scaleFactor)}rem`;
+                if (phoneticElem) phoneticElem.style.fontSize = `${Math.max(0.6, scaleFactor * 0.85)}rem`;
+              });
+            }
+          }
+          
+          // 2. 检查释义区域是否需要调整
+          const meaningGroups = wordInfo.querySelectorAll('.meaning-group');
+          meaningGroups.forEach((group, index) => {
+            const meaningText = group.querySelector('.meaning-text');
+            if (!meaningText) return;
+            
+            // 检测是否有溢出
+            const groupWidth = group.clientWidth;
+            const posTagWidth = group.querySelector('.pos-tag').offsetWidth;
+            const availableWidth = groupWidth - posTagWidth - 16; // 减去间距
+            
+            // 检查释义文本长度和可用空间
+            const textLength = meaningText.textContent.length;
+            
+            console.log(`释义组 ${index+1}: 总宽度=${groupWidth}px, 词性标签宽度=${posTagWidth}px, 可用宽度=${availableWidth}px, 文本长度=${textLength}`);
+            
+            // 如果文本过长，动态调整字体大小
+            if (textLength > 20) {
+              // 根据文本长度和可用空间动态计算字体大小
+              let fontSize = 1.1; // 默认字体大小
+              
+              if (textLength > 100) fontSize = 0.85;
+              else if (textLength > 70) fontSize = 0.9;
+              else if (textLength > 50) fontSize = 0.95;
+              else if (textLength > 30) fontSize = 1.0;
+              
+              console.log(`应用字体大小: ${fontSize}rem`);
+              meaningText.style.fontSize = `${fontSize}rem`;
+              
+              // 对于非常长的释义，让整个组换行显示
+              if (textLength > 150) {
+                group.style.flexDirection = 'column';
+                group.style.alignItems = 'flex-start';
+                group.querySelector('.pos-tag').style.marginBottom = '0.3rem';
+              }
+            }
+          });
+        }, 10); // 给渲染一点时间
       }
 
       function showError(message) {

@@ -424,26 +424,28 @@
     
     .phoneme-audio-button {
       position: absolute;
-      top: -8px;
-      right: -8px;
-      background-color: var(--primary-light);
-      color: white;
-      width: 24px;
-      height: 24px;
+      top: 5px;
+      right: 5px;
+      background-color: transparent;
+      color: var(--text-light);
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 0.7rem;
       cursor: pointer;
-      box-shadow: var(--shadow-sm);
       border: none;
       padding: 0;
+      opacity: 0.7;
     }
     
     .phoneme-audio-button:hover {
-      background-color: var(--primary-dark);
-      transform: scale(1.1);
+      color: var(--primary-color);
+      opacity: 1;
+      background-color: transparent;
+      transform: none;
     }
     
     /* 滚动条样式 */
@@ -1000,7 +1002,7 @@
         try {
           button.disabled = true;
           const originalText = button.textContent;
-          button.textContent = '•••';
+          button.textContent = '•';
           
           const audio = new Audio(audioUrl);
           
@@ -1032,13 +1034,13 @@
         } catch (error) {
           console.error('音素音频播放失败:', error);
           // 在音素卡片中显示错误提示
-          button.style.backgroundColor = 'var(--secondary-color)';
+          button.style.color = 'var(--secondary-color)';
           setTimeout(() => {
-            button.style.backgroundColor = '';
+            button.style.color = '';
           }, 2000);
         } finally {
           button.disabled = false;
-          button.textContent = '🔊';
+          button.textContent = '▶';
         }
       }
       
@@ -1230,7 +1232,7 @@
               
               const audioButton = document.createElement('button');
               audioButton.className = 'phoneme-audio-button';
-              audioButton.textContent = '🔊';
+              audioButton.textContent = '▶';
               audioButton.title = '播放音素发音';
               
               audioButton.addEventListener('click', () => {

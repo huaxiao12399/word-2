@@ -353,22 +353,22 @@
     
     .phonemes-container {
       max-width: 100%;
-      overflow-x: auto;
+      overflow-x: hidden;
       scrollbar-width: thin;
       scrollbar-color: var(--primary-light) var(--background-light);
     }
     
     .phonemes-grid {
       display: flex;
-      flex-wrap: nowrap;
+      flex-wrap: wrap;
       gap: var(--spacing-sm);
       padding: var(--spacing-sm) 0;
-      overflow-x: auto;
+      justify-content: space-between;
     }
     
     .phoneme-card {
-      flex: 0 0 auto;
-      width: 100px;
+      flex: 0 0 calc(50% - var(--spacing-sm));
+      width: calc(50% - var(--spacing-sm));
       text-align: center;
       border: 1px solid #dee2e6;
       border-radius: var(--border-radius-sm);
@@ -377,6 +377,7 @@
       box-shadow: var(--shadow-sm);
       transition: transform 0.2s ease, box-shadow 0.2s ease;
       position: relative;
+      margin-bottom: var(--spacing-sm);
     }
     
     .phoneme-card:hover {
@@ -403,17 +404,19 @@
       font-size: 0.75rem;
       color: var(--text-color);
       margin-bottom: var(--spacing-xs);
-      height: 3.6em;
-      overflow: hidden;
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
+      line-height: 1.4;
     }
     
     .phoneme-example {
       font-size: 0.8rem;
       font-style: italic;
       color: var(--text-light);
+    }
+    
+    .phoneme-example::before {
+      content: "示例：";
+      font-style: normal;
+      color: var(--text-color);
     }
     
     .phoneme-audio-button {
@@ -462,15 +465,8 @@
     /* 适配移动设备 */
     @media (max-width: 576px) {
       .phoneme-card {
-        width: 80px;
-      }
-      
-      .phoneme-symbol {
-        font-size: 1.2rem;
-      }
-      
-      .phoneme-description {
-        font-size: 0.7rem;
+        flex: 0 0 100%;
+        width: 100%;
       }
     }
   </style>

@@ -1,0 +1,270 @@
+{
+    "元音": {
+        "ɪ": {
+            "symbol": "ɪ",
+            "type": "元音",
+            "description": "短i音，发音时嘴型较放松，舌位比/i:/低",
+            "example": "sit"
+        },
+        "iː": {
+            "symbol": "iː",
+            "type": "元音",
+            "description": "长i音，发音时嘴角向两边展开，舌位高",
+            "example": "see"
+        },
+        "e": {
+            "symbol": "e",
+            "type": "元音",
+            "description": "短e音，发音时嘴巴微微张开，舌位中高",
+            "example": "egg"
+        },
+        "æ": {
+            "symbol": "æ",
+            "type": "元音",
+            "description": "短a音，发音时嘴巴较大张开，舌位低前",
+            "example": "apple"
+        },
+        "ɑː": {
+            "symbol": "ɑː",
+            "type": "元音",
+            "description": "长a音，发音时嘴巴大张开，舌位低后",
+            "example": "arm"
+        },
+        "ɒ": {
+            "symbol": "ɒ",
+            "type": "元音",
+            "description": "短o音，发音时嘴唇略呈圆形，舌位低后",
+            "example": "hot"
+        },
+        "ɔː": {
+            "symbol": "ɔː",
+            "type": "元音",
+            "description": "长o音，发音时嘴唇呈圆形，舌位中后",
+            "example": "walk"
+        },
+        "ʊ": {
+            "symbol": "ʊ",
+            "type": "元音",
+            "description": "短u音，发音时嘴唇略呈圆形，舌位高后",
+            "example": "book"
+        },
+        "uː": {
+            "symbol": "uː",
+            "type": "元音",
+            "description": "长u音，发音时嘴唇呈圆形，舌位高后",
+            "example": "flute"
+        },
+        "ʌ": {
+            "symbol": "ʌ",
+            "type": "元音",
+            "description": "短a音，发音时嘴巴适度张开，舌位中央",
+            "example": "cup"
+        },
+        "ɜː": {
+            "symbol": "ɜː",
+            "type": "元音",
+            "description": "长e音，发音时嘴巴适度张开，舌位中央",
+            "example": "shirt"
+        },
+        "ə": {
+            "symbol": "ə",
+            "type": "元音",
+            "description": "中央元音，发音轻快，常用于非重读音节",
+            "example": "balloon"
+        },
+        "eɪ": {
+            "symbol": "eɪ",
+            "type": "元音",
+            "description": "双元音，发音时从/e/滑向/ɪ/，口型由半开到半闭，舌位从前舌中位置向前上方移动",
+            "example": "game"
+        },
+        "aɪ": {
+            "symbol": "aɪ",
+            "type": "元音",
+            "description": "双元音，发音时从/a/滑向/ɪ/，口型由大开到半闭，舌位从低位中央向前上方移动",
+            "example": "bike"
+        },
+        "ɔɪ": {
+            "symbol": "ɔɪ",
+            "type": "元音",
+            "description": "双元音，发音时从/ɔ/滑向/ɪ/，口型由圆唇半开到非圆唇半闭，舌位从后舌半开位置向前上方移动",
+            "example": "coin"
+        },
+        "əʊ": {
+            "symbol": "əʊ",
+            "type": "元音",
+            "description": "双元音，发音时从/ə/滑向/ʊ/，口型由自然放松到圆唇半闭，舌位从中央中位置向后上方移动",
+            "example": "home"
+        },
+        "aʊ": {
+            "symbol": "aʊ",
+            "type": "元音",
+            "description": "双元音，发音时从/a/滑向/ʊ/，口型由大开到圆唇半闭，舌位从低位中央向后上方移动",
+            "example": "mouth"
+        },
+        "ɪə": {
+            "symbol": "ɪə",
+            "type": "元音",
+            "description": "双元音，发音时从/ɪ/滑向/ə/，口型由前部半闭到中央松弛，舌位从前舌高位置向中央下方移动",
+            "example": "ear"
+        },
+        "eə": {
+            "symbol": "eə",
+            "type": "元音",
+            "description": "双元音，发音时从/e/滑向/ə/，口型由前部半开到中央松弛，舌位从前舌中位置向中央移动",
+            "example": "chair"
+        },
+        "ʊə": {
+            "symbol": "ʊə",
+            "type": "元音",
+            "description": "双元音，发音时从/ʊ/滑向/ə/，口型由后部圆唇半闭到中央松弛，舌位从后舌高位置向中央下方移动",
+            "example": "tour"
+        }
+    },
+    "辅音": {
+        "p": {
+            "symbol": "p",
+            "type": "辅音",
+            "description": "清辅音，双唇爆破音，发音时双唇闭拢后突然张开",
+            "example": "pen"
+        },
+        "b": {
+            "symbol": "b",
+            "type": "辅音",
+            "description": "浊辅音，双唇爆破音，发音时声带振动",
+            "example": "bad"
+        },
+        "t": {
+            "symbol": "t",
+            "type": "辅音",
+            "description": "清辅音，齿龈爆破音，发音时舌尖抵住上齿龈后突然分开",
+            "example": "ten"
+        },
+        "d": {
+            "symbol": "d",
+            "type": "辅音",
+            "description": "浊辅音，齿龈爆破音，发音时声带振动",
+            "example": "desk"
+        },
+        "k": {
+            "symbol": "k",
+            "type": "辅音",
+            "description": "清辅音，软腭爆破音，发音时舌后部抵住软腭后突然分开",
+            "example": "king"
+        },
+        "g": {
+            "symbol": "g",
+            "type": "辅音",
+            "description": "浊辅音，软腭爆破音，发音时声带振动",
+            "example": "girl"
+        },
+        "f": {
+            "symbol": "f",
+            "type": "辅音",
+            "description": "清辅音，唇齿摩擦音，发音时上齿轻触下唇",
+            "example": "family"
+        },
+        "v": {
+            "symbol": "v",
+            "type": "辅音",
+            "description": "浊辅音，唇齿摩擦音，发音时声带振动",
+            "example": "van"
+        },
+        "θ": {
+            "symbol": "θ",
+            "type": "辅音",
+            "description": "清辅音，齿间摩擦音，发音时舌尖置于上下齿之间",
+            "example": "three"
+        },
+        "ð": {
+            "symbol": "ð",
+            "type": "辅音",
+            "description": "浊辅音，齿间摩擦音，发音时声带振动",
+            "example": "this"
+        },
+        "s": {
+            "symbol": "s",
+            "type": "辅音",
+            "description": "清辅音，齿龈摩擦音，发音时舌尖接近上齿龈",
+            "example": "sun"
+        },
+        "z": {
+            "symbol": "z",
+            "type": "辅音",
+            "description": "浊辅音，齿龈摩擦音，发音时声带振动",
+            "example": "zebra"
+        },
+        "ʃ": {
+            "symbol": "ʃ",
+            "type": "辅音",
+            "description": "清辅音，后齿龈摩擦音，发音时舌前部抬起接近硬腭",
+            "example": "shoes"
+        },
+        "ʒ": {
+            "symbol": "ʒ",
+            "type": "辅音",
+            "description": "浊辅音，后齿龈摩擦音，发音时声带振动",
+            "example": "measure"
+        },
+        "h": {
+            "symbol": "h",
+            "type": "辅音",
+            "description": "清辅音，声门摩擦音，发音时气流从喉咙直接通过",
+            "example": "head"
+        },
+        "tʃ": {
+            "symbol": "tʃ",
+            "type": "辅音",
+            "description": "清辅音，后齿龈塞擦音，发音时先如/t/，然后立即转为/ʃ/",
+            "example": "cheese"
+        },
+        "dʒ": {
+            "symbol": "dʒ",
+            "type": "辅音",
+            "description": "浊辅音，后齿龈塞擦音，发音时先如/d/，然后立即转为/ʒ/",
+            "example": "gym"
+        },
+        "m": {
+            "symbol": "m",
+            "type": "辅音",
+            "description": "浊辅音，双唇鼻音，发音时双唇紧闭，气流从鼻腔通过",
+            "example": "moon"
+        },
+        "n": {
+            "symbol": "n",
+            "type": "辅音",
+            "description": "浊辅音，齿龈鼻音，发音时舌尖抵住上齿龈，气流从鼻腔通过",
+            "example": "nest"
+        },
+        "ŋ": {
+            "symbol": "ŋ",
+            "type": "辅音",
+            "description": "浊辅音，软腭鼻音，发音时舌后部抵住软腭，气流从鼻腔通过",
+            "example": "wing"
+        },
+        "l": {
+            "symbol": "l",
+            "type": "辅音",
+            "description": "浊辅音，齿龈边音，发音时舌尖抵住上齿龈，气流从舌两侧通过",
+            "example": "lion"
+        },
+        "r": {
+            "symbol": "r",
+            "type": "辅音",
+            "description": "浊辅音，齿龈近音，发音时舌尖接近但不接触上齿龈",
+            "example": "red"
+        },
+        "j": {
+            "symbol": "j",
+            "type": "辅音",
+            "description": "浊辅音，硬腭近音，发音时舌面接近硬腭",
+            "example": "yes"
+        },
+        "w": {
+            "symbol": "w",
+            "type": "辅音",
+            "description": "浊辅音，双唇-软腭近音，发音时双唇收圆，舌后部接近软腭",
+            "example": "we"
+        }
+    }
+} 

@@ -198,229 +198,279 @@
       justify-content: center;
       margin-bottom: var(--spacing-sm);
     }
-
-    .pronunciation-item {
-      display: inline-flex;
-      align-items: center;
-      gap: var(--spacing-sm);
-      background: rgba(255, 255, 255, 0.7);
-      padding: 4px 12px;
-      border-radius: 20px;
-      box-shadow: var(--shadow-sm);
-    }
-
+    
     .phonetic {
-      color: var(--secondary-color);
-      font-size: 1rem;
-      font-family: Arial, sans-serif;
-      font-weight: 500;
+      font-size: 1.1rem;
+      color: var(--text-light);
+      margin-right: var(--spacing-sm);
     }
-
+    
     .audio-button {
       background: none;
       border: none;
       color: var(--primary-color);
+      font-size: 1.4rem;
       cursor: pointer;
-      padding: 3px;
-      font-size: 1rem;
-      transition: transform 0.2s ease;
-      margin-left: 2px;
+      padding: 0 0.5rem;
+      transition: color var(--transition-speed) ease;
     }
-
+    
     .audio-button:hover {
       color: var(--primary-dark);
       transform: scale(1.1);
     }
-
+    
+    .audio-button:disabled {
+      color: var(--text-light);
+      cursor: not-allowed;
+      transform: none;
+    }
+    
     .syllables-container {
-      width: 100%;
+      max-width: 100%;
       overflow-x: auto;
-      scrollbar-width: thin;
-      scrollbar-color: var(--primary-light) transparent;
-      margin-top: var(--spacing-sm);
+      margin-bottom: var(--spacing-sm);
     }
     
-    .syllables-container::-webkit-scrollbar {
-      height: 4px;
-    }
-    
-    .syllables-container::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    
-    .syllables-container::-webkit-scrollbar-thumb {
-      background-color: var(--primary-light);
-      border-radius: 10px;
-    }
-
     .syllables {
       display: flex;
-      gap: 8px;
-      padding: 4px 0;
-      min-width: min-content;
-      justify-content: center;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-sm) 0;
+      overflow-x: auto;
+      justify-content: flex-start;
       margin: 0 auto;
     }
-
+    
     .syllable-block {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-      padding: 6px 10px;
-      background: rgba(255, 255, 255, 0.5);
+      text-align: center;
+      border: 1px solid #dee2e6;
       border-radius: var(--border-radius-sm);
+      padding: var(--spacing-xs) var(--spacing-sm);
+      min-width: 60px;
+      background-color: #fff;
       box-shadow: var(--shadow-sm);
-      min-width: 40px;
     }
-
+    
     .syllable-text {
-      color: var(--text-color);
-      font-size: 0.9rem;
-      font-weight: 500;
+      font-weight: 600;
+      font-size: 1rem;
     }
-
+    
     .syllable-phonetic {
-      color: var(--secondary-color);
-      font-family: Arial, sans-serif;
-      font-size: 0.75rem;
+      font-size: 0.9rem;
+      color: var(--text-light);
     }
-
+    
     .meaning-section {
-      padding: var(--spacing-md);
-      background: var(--background-white);
-      display: grid;
-      gap: var(--spacing-sm);
+      padding: var(--spacing-md) var(--spacing-lg);
     }
-
+    
     .meaning-item {
-      position: relative;
-      background: var(--background-light);
-      border-radius: var(--border-radius-md);
-      padding: var(--spacing-sm) var(--spacing-md);
-      overflow: hidden;
-      transition: all 0.2s ease;
+      margin-bottom: var(--spacing-md);
     }
-
-    .meaning-item:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-sm);
+    
+    .meaning-item:last-child {
+      margin-bottom: 0;
     }
-
+    
     .meaning-group {
       display: flex;
-      align-items: center;
-      gap: var(--spacing-md);
-      width: 100%;
+      align-items: flex-start;
+      flex-wrap: wrap;
     }
-
+    
     .pos-tag {
-      display: inline-block;
-      padding: 3px 10px;
-      background-color: rgba(67, 97, 238, 0.1);
-      color: var(--primary-dark);
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       font-weight: 600;
-      border-radius: var(--border-radius-sm);
-      white-space: nowrap;
-      flex-shrink: 0;
+      color: var(--primary-dark);
+      margin-right: var(--spacing-sm);
+      min-width: 60px;
     }
-
+    
     .meaning-text {
-      color: var(--text-color);
+      flex: 1;
       font-size: 1rem;
       line-height: 1.5;
-      white-space: normal;
-      overflow: visible;
-      word-wrap: break-word;
     }
-
+    
     .meaning-text.extra-long {
-      font-size: 0.85rem !important;
+      font-size: 0.95rem;
+      line-height: 1.4;
     }
-
+    
     .loading {
-      text-align: center;
-      padding: var(--spacing-lg);
-      color: var(--text-light);
-      font-size: 0.9rem;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: var(--spacing-sm);
+      justify-content: center;
+      padding: var(--spacing-lg);
+      color: var(--text-light);
     }
-
+    
     .loading-spinner {
-      width: 24px;
-      height: 24px;
-      border: 3px solid rgba(67, 97, 238, 0.3);
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      border-left-color: var(--primary-color);
       border-radius: 50%;
-      border-top-color: var(--primary-color);
       animation: spin 1s linear infinite;
+      margin-bottom: var(--spacing-sm);
     }
-
+    
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
-
+    
     .error {
-      color: var(--secondary-color);
+      background-color: #ffe3e3;
+      color: #d90429;
       padding: var(--spacing-md);
       border-radius: var(--border-radius-md);
-      background-color: rgba(247, 37, 133, 0.1);
       text-align: center;
-      font-size: 0.9rem;
-      border: 1px solid rgba(247, 37, 133, 0.2);
-    }
-
-    /* 媒体查询优化 */
-    @media (max-width: 480px) {
-      .container {
-        padding: var(--spacing-md);
-      }
-      
-      .word-section {
-        padding: var(--spacing-md);
-      }
-
-      .word {
-        font-size: 1.75rem;
-      }
-
-      .pronunciation-wrapper {
-        flex-direction: row;
-      }
-
-      .meaning-section {
-        padding: var(--spacing-sm);
-      }
-
-      /* 小屏幕上的词性组特殊处理 */
-      .meaning-group {
-        flex-wrap: wrap;
-      }
-      
-      .meaning-group .pos-tag {
-        margin-bottom: 2px;
-      }
-
-      .word.long-word {
-        font-size: 1.5rem;
-      }
-      
-      .word.very-long-word {
-        font-size: 1.3rem;
-      }
+      font-weight: 500;
     }
     
-    /* 中等屏幕的优化 */
-    @media (min-width: 481px) and (max-width: 768px) {
-      .meaning-group {
-        flex-wrap: wrap;
+    .pronunciation-item {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 音素卡片样式 */
+    .phonemes-section {
+      margin-top: var(--spacing-md);
+      padding: var(--spacing-md);
+      border-top: 1px solid #dee2e6;
+    }
+    
+    .phonemes-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: var(--spacing-sm);
+      color: var(--text-color);
+      text-align: center;
+    }
+    
+    .phonemes-container {
+      max-width: 100%;
+      overflow-x: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--primary-light) var(--background-light);
+    }
+    
+    .phonemes-grid {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-sm) 0;
+      overflow-x: auto;
+    }
+    
+    .phoneme-card {
+      flex: 0 0 auto;
+      width: 100px;
+      text-align: center;
+      border: 1px solid #dee2e6;
+      border-radius: var(--border-radius-sm);
+      padding: var(--spacing-sm);
+      background-color: #fff;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+    }
+    
+    .phoneme-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .phoneme-symbol {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--primary-dark);
+      margin-bottom: var(--spacing-xs);
+    }
+    
+    .phoneme-type {
+      font-size: 0.8rem;
+      color: var(--text-light);
+      border-bottom: 1px solid #dee2e6;
+      padding-bottom: var(--spacing-xs);
+      margin-bottom: var(--spacing-xs);
+    }
+    
+    .phoneme-description {
+      font-size: 0.75rem;
+      color: var(--text-color);
+      margin-bottom: var(--spacing-xs);
+      height: 3.6em;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+    }
+    
+    .phoneme-example {
+      font-size: 0.8rem;
+      font-style: italic;
+      color: var(--text-light);
+    }
+    
+    .phoneme-audio-button {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background-color: var(--primary-light);
+      color: white;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      border: none;
+      padding: 0;
+    }
+    
+    .phoneme-audio-button:hover {
+      background-color: var(--primary-dark);
+      transform: scale(1.1);
+    }
+    
+    /* 滚动条样式 */
+    .phonemes-container::-webkit-scrollbar {
+      height: 6px;
+    }
+    
+    .phonemes-container::-webkit-scrollbar-track {
+      background: var(--background-light);
+      border-radius: 3px;
+    }
+    
+    .phonemes-container::-webkit-scrollbar-thumb {
+      background-color: var(--primary-light);
+      border-radius: 3px;
+    }
+    
+    .phonemes-container::-webkit-scrollbar-thumb:hover {
+      background-color: var(--primary-dark);
+    }
+    
+    /* 适配移动设备 */
+    @media (max-width: 576px) {
+      .phoneme-card {
+        width: 80px;
       }
       
-      .meaning-group .pos-tag {
-        margin-bottom: 2px;
+      .phoneme-symbol {
+        font-size: 1.2rem;
+      }
+      
+      .phoneme-description {
+        font-size: 0.7rem;
       }
     }
   </style>
@@ -431,12 +481,10 @@
       <h1>单词助手</h1>
     </div>
     <div class="search-box">
-      <input type="text" id="wordInput" placeholder="请输入要查询的单词..." autofocus>
+      <input type="text" id="wordInput" placeholder="输入单词...">
       <button id="searchButton">查询</button>
     </div>
-    <div id="result" class="result">
-      <!-- 结果将在这里显示 -->
-    </div>
+    <div class="result" id="result"></div>
   </div>
 
   <script>
@@ -642,9 +690,10 @@
     });
 
     // 将原有的页面初始化代码移到这个函数中
-    function initializePage() {
+    async function initializePage() {
       const searchInput = document.getElementById('wordInput');
       const searchButton = document.getElementById('searchButton');
+      const resultDiv = document.getElementById('result');
 
       async function searchWord() {
         try {
@@ -953,23 +1002,82 @@
         }
       }
 
-      // 分离 Web Speech API 逻辑
-      function playWithWebSpeech(text) {
-        if (!('speechSynthesis' in window)) {
-          console.error('Web Speech API not supported');
-          return;
-        }
-
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'en-GB';  // 保持与 Azure TTS 一致使用英式英语
-        utterance.rate = 1.0;      // 正常语速
-        utterance.pitch = 1.0;     // 正常音高
-        utterance.volume = 1.0;     // 正常音量
+      // 播放音素音频
+      async function playPhonemeAudio(audioUrl, button) {
+        if (button.disabled) return;
         
-        window.speechSynthesis.speak(utterance);
+        try {
+          button.disabled = true;
+          const originalText = button.textContent;
+          button.textContent = '•••';
+          
+          const audio = new Audio(audioUrl);
+          
+          await new Promise((resolve, reject) => {
+            audio.oncanplaythrough = async () => {
+              try {
+                await audio.play();
+              } catch (error) {
+                reject(error);
+              }
+            };
+            
+            audio.onended = () => {
+              resolve();
+            };
+            
+            audio.onerror = (event) => {
+              console.error('音素音频错误:', event);
+              reject(new Error('音素音频播放失败'));
+            };
+            
+            // 添加超时处理
+            setTimeout(() => {
+              if (audio.readyState < 3) { // HAVE_FUTURE_DATA
+                reject(new Error('音素音频加载超时'));
+              }
+            }, 5000);
+          });
+        } catch (error) {
+          console.error('音素音频播放失败:', error);
+          // 在音素卡片中显示错误提示
+          button.style.backgroundColor = 'var(--secondary-color)';
+          setTimeout(() => {
+            button.style.backgroundColor = '';
+          }, 2000);
+        } finally {
+          button.disabled = false;
+          button.textContent = '🔊';
+        }
+      }
+      
+      // 获取音标的音素拆分
+      async function getPhonemeDetails(phonetic) {
+        try {
+          // 移除phonetic两端的斜杠
+          const cleanPhonetic = phonetic.replace(/^\/|\/$/g, '');
+          
+          const response = await fetch('/api/phonetic-splitter', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({ phonetic: cleanPhonetic })
+          });
+          
+          if (!response.ok) {
+            throw new Error('获取音素信息失败');
+          }
+          
+          return await response.json();
+        } catch (error) {
+          console.error('获取音素详情失败:', error);
+          return null;
+        }
       }
 
-      function displayResult(data) {
+      async function displayResult(data) {
         // 验证数据格式
         if (!data || typeof data !== 'object') {
           throw new Error('无效的数据格式');
@@ -995,12 +1103,19 @@
             </div>
           </div>
           <div class="meaning-section"></div>
+          <div class="phonemes-section">
+            <div class="phonemes-title">音素拆分</div>
+            <div class="phonemes-container">
+              <div class="phonemes-grid"></div>
+            </div>
+          </div>
         `;
 
         const wordDiv = wordInfo.querySelector('.word');
         const phoneticSpan = wordInfo.querySelector('.phonetic');
         const syllablesDiv = wordInfo.querySelector('.syllables');
         const meaningSection = wordInfo.querySelector('.meaning-section');
+        const phonemesGrid = wordInfo.querySelector('.phonemes-grid');
 
         // 显示单词
         wordDiv.textContent = data.word;
@@ -1095,6 +1210,59 @@
           meaningSection.appendChild(meaningItem);
         });
 
+        // 获取并显示音素信息
+        const phonemesSection = wordInfo.querySelector('.phonemes-section');
+        try {
+          const phonemeDetails = await getPhonemeDetails(data.phonetic);
+          
+          if (phonemeDetails && Array.isArray(phonemeDetails.phonemes) && phonemeDetails.phonemes.length > 0) {
+            // 创建音素卡片
+            phonemeDetails.phonemes.forEach(phoneme => {
+              const phonemeCard = document.createElement('div');
+              phonemeCard.className = 'phoneme-card';
+              
+              const symbol = document.createElement('div');
+              symbol.className = 'phoneme-symbol';
+              symbol.textContent = phoneme.symbol;
+              
+              const type = document.createElement('div');
+              type.className = 'phoneme-type';
+              type.textContent = phoneme.detail.type || '未知';
+              
+              const description = document.createElement('div');
+              description.className = 'phoneme-description';
+              description.textContent = phoneme.detail.description || '';
+              
+              const example = document.createElement('div');
+              example.className = 'phoneme-example';
+              example.textContent = phoneme.detail.example || '';
+              
+              const audioButton = document.createElement('button');
+              audioButton.className = 'phoneme-audio-button';
+              audioButton.textContent = '🔊';
+              audioButton.title = '播放音素发音';
+              
+              audioButton.addEventListener('click', () => {
+                playPhonemeAudio(phoneme.audioUrl, audioButton);
+              });
+              
+              phonemeCard.appendChild(symbol);
+              phonemeCard.appendChild(type);
+              phonemeCard.appendChild(description);
+              phonemeCard.appendChild(example);
+              phonemeCard.appendChild(audioButton);
+              
+              phonemesGrid.appendChild(phonemeCard);
+            });
+          } else {
+            // 如果没有获取到音素信息，隐藏音素部分
+            phonemesSection.style.display = 'none';
+          }
+        } catch (error) {
+          console.error('显示音素信息失败:', error);
+          phonemesSection.style.display = 'none';
+        }
+
         // 清空结果区域并添加新内容
         resultDiv.innerHTML = '';
         resultDiv.appendChild(wordInfo);
@@ -1122,7 +1290,7 @@
       }
 
       searchButton.addEventListener('click', searchWord);
-      wordInput.addEventListener('keypress', (e) => {
+      searchInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter' && !searchButton.disabled) {
           searchWord();
         }

@@ -206,24 +206,27 @@
     }
 
     .audio-button {
-      background: none;
+      background-color: transparent;
       border: none;
-      color: var(--primary-color);
-      font-size: 1.4rem;
+      color: var(--text-light);
+      font-size: 1rem;
       cursor: pointer;
       padding: 0 0.5rem;
       transition: color var(--transition-speed) ease;
+      opacity: 0.7;
     }
 
     .audio-button:hover {
-      color: var(--primary-dark);
-      transform: scale(1.1);
+      color: var(--primary-color);
+      opacity: 1;
+      background-color: transparent;
+      transform: none;
     }
     
     .audio-button:disabled {
       color: var(--text-light);
       cursor: not-allowed;
-      transform: none;
+      opacity: 0.5;
     }
     
     .syllables-container {
@@ -939,6 +942,8 @@
         try {
           audioButton.disabled = true;
           audioButton.style.color = 'var(--secondary-color)';
+          const originalText = audioButton.textContent;
+          audioButton.textContent = '•';
 
           const word = text.toLowerCase();
           let audioData = audioCache.get(word);
@@ -991,6 +996,7 @@
           if (audioButton) {
             audioButton.disabled = false;
             audioButton.style.color = '';
+            audioButton.textContent = '▶';
           }
         }
       }
@@ -1088,7 +1094,7 @@
               <div class="pronunciation-wrapper">
                 <div class="pronunciation-item">
                   <span class="phonetic"></span>
-                  <button class="audio-button" title="播放发音">🔊</button>
+                  <button class="audio-button" title="播放发音">▶</button>
                 </div>
               </div>
             <div class="syllables-container">

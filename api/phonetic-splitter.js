@@ -49,6 +49,7 @@ function splitPhoneticString(phoneticString, language = 'en-UK') {
         'aɪ': ['aɪ'], // 例如: price /praɪs/
         'ɔɪ': ['ɔɪ'], // 例如: choice /tʃɔɪs/
         'əʊ': ['əʊ'], // 例如: goat /ɡəʊt/ (RP 特有, 相对于美式 /oʊ/)
+		'oʊ': ['əʊ'],    // 美式写法转换为英式
         'aʊ': ['aʊ'], // 例如: mouth /maʊθ/
         'ɪə': ['ɪə'], // 例如: near /nɪər/
         'eə': ['eə'], // 例如: square /skweər/
@@ -69,6 +70,10 @@ function splitPhoneticString(phoneticString, language = 'en-UK') {
         'ʌ': ['ʌ'], // 例如: strut /strʌt/, mud /mʌd/
         'ʊ': ['ʊ'], // 例如: foot /fʊt/, put /pʊt/
         'ə': ['ə'], // Schwa, 例如: about /əˈbaʊt/, common /ˈkɒmən/
+		'i': ['ɪ'],      // kit 元音错误输入
+        'ɛ': ['e'],      // dress 元音的变体（或反之，根据最终规范）
+        'ɔ': ['ɒ'],      // lot 类词的常见错误
+        'ɑ': ['ɑː'],     // father 类词可能缺少长音标记
 
         // 塞擦音
         'tʃ': ['tʃ'], // 例如: church /tʃɜːtʃ/
